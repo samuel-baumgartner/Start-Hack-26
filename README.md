@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Start Hack
 
-## Getting Started
+Clean starter repository for team development using:
 
-First, run the development server:
+- Next.js (App Router + TypeScript)
+- shadcn/ui
+- Framer Motion
+- pnpm
+- Husky git hooks
+
+## Quick Start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `pnpm dev` - run development server
+- `pnpm lint` - run ESLint checks
+- `pnpm build` - production build
+- `pnpm check` - lint + build
 
-## Learn More
+## Push Protection (Build Gate)
 
-To learn more about Next.js, take a look at the following resources:
+This repo has Husky hooks configured:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `pre-commit` runs `pnpm lint`
+- `pre-push` runs `pnpm build`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+If either fails, git blocks the push. This keeps the shared branch deployable.
 
-## Deploy on Vercel
+For remote protection, CI in `.github/workflows/ci.yml` also runs lint + build on PRs and pushes to `main`/`master`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Team Onboarding
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Clone the repo
+2. Run `pnpm install`
+3. Start coding in `app/page.tsx` or add features in `components/`
+
+To add more shadcn components:
+
+```bash
+pnpm dlx shadcn@latest add <component-name>
+```
