@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, ChevronDown, CircleUserRound } from "lucide-react";
 import { ProgressBar } from "@/components/shared/ProgressBar";
+import { CrewAvatar } from "@/components/shared/CrewAvatar";
 import type { AlertItem, AstronautProfile, GreenhouseHealth, HealthLogEntry } from "@/types/greenhouse";
 
 interface HeaderProps {
@@ -89,9 +90,7 @@ export function Header({ profile, health, logEntries, activeAlert }: HeaderProps
                 onClick={() => setProfileOpen((prev) => !prev)}
                 aria-label="Open astronaut profile"
               >
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e0e2f8] text-base font-semibold text-[#36398e]">
-                  {profile.initials}
-                </span>
+                <CrewAvatar avatar={profile.avatar} size="md" />
                 <CircleUserRound className="h-5 w-5 text-[#52705b] group-hover:text-[#36398e]" />
               </button>
 

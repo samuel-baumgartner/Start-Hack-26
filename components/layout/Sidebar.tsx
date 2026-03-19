@@ -2,6 +2,7 @@
 
 import { ChevronDown, ChevronUp, MessageSquare } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { CrewAvatar } from "@/components/shared/CrewAvatar";
 import type { AstronautProfile } from "@/types/greenhouse";
 
 interface SidebarProps {
@@ -29,9 +30,7 @@ export function Sidebar({ alertView, teamMembers, chatView }: SidebarProps) {
           {teamMembers.map((member) => (
             <article key={member.crewId} className="rounded-xl border border-[#e5ece6] bg-white p-2.5">
               <div className="flex items-start gap-2.5">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#e0e2f8] text-xs font-semibold text-[#36398e]">
-                  {member.initials}
-                </span>
+                <CrewAvatar avatar={member.avatar} size="sm" />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-[#163126]">{member.name}</p>
                   <p className="text-xs text-[#607f6a]">{member.role}</p>
@@ -48,7 +47,7 @@ export function Sidebar({ alertView, teamMembers, chatView }: SidebarProps) {
         </div>
       </section>
 
-      <div className="rounded-2xl border border-[#d7e6d8] bg-white/60 p-2">
+      <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-[#d7e6d8] bg-white/60 p-2">
         <button
           type="button"
           onClick={() => setIsChatOpen((prev) => !prev)}
@@ -58,7 +57,7 @@ export function Sidebar({ alertView, teamMembers, chatView }: SidebarProps) {
         >
           <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#486554]">
             <MessageSquare className="h-3.5 w-3.5" />
-            Chat
+            Flora
           </span>
           {isChatOpen ? (
             <ChevronUp className="h-4 w-4 text-[#486554]" />
@@ -68,7 +67,7 @@ export function Sidebar({ alertView, teamMembers, chatView }: SidebarProps) {
         </button>
 
         {isChatOpen ? (
-          <div id="ai-chat-panel" className="mt-2 h-[300px] overflow-hidden rounded-2xl xl:h-[320px]">
+          <div id="ai-chat-panel" className="mt-2 min-h-[340px] flex-1 overflow-hidden rounded-2xl">
             {chatView}
           </div>
         ) : null}

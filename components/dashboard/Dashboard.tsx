@@ -94,7 +94,7 @@ export function Dashboard() {
           <div className="grid min-h-[760px] grid-rows-[minmax(0,1fr)_auto] gap-4">
             <HexZoneMap />
 
-            <div className="grid self-end gap-3 lg:grid-cols-[minmax(0,1fr)_420px]">
+            <div className="grid self-end gap-3 lg:grid-cols-2">
               <StatusBars bars={statusBars} />
               <ActionQueue actions={actionQueue} />
             </div>

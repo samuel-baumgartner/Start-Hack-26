@@ -34,23 +34,12 @@ export function StatusBars({ bars }: StatusBarsProps) {
       <h2 className="mb-2 text-lg font-semibold uppercase tracking-wide text-[#496856]">Mission Status</h2>
       <div className="space-y-2.5">
         {bars.map((bar) => (
-          <div key={bar.id} className="grid grid-cols-[190px_minmax(0,1fr)_170px] items-center gap-2">
+          <div key={bar.id} className="grid grid-cols-[190px_minmax(0,1fr)] items-center gap-2">
             <div className="flex items-center gap-1.5 text-sm text-[#264336]">
               {iconFor(bar.id)}
               <span>{bar.label}</span>
             </div>
             <ProgressBar value={bar.value} gradientClass={barGradient(bar)} className="h-2.5" />
-            <div
-              className={`text-right text-sm ${
-                bar.statusLevel === "critical"
-                  ? "text-[#b91c1c]"
-                  : bar.statusLevel === "warning"
-                    ? "text-[#b45309]"
-                    : "text-[#176534]"
-              }`}
-            >
-              {bar.statusText}
-            </div>
           </div>
         ))}
       </div>

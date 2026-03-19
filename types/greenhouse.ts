@@ -9,6 +9,7 @@ export interface AstronautProfile {
   crewId: string;
   mission: string;
   initials: string;
+  avatar: "male" | "female";
 }
 
 export interface HealthLogEntry {
