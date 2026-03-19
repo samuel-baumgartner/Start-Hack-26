@@ -694,10 +694,10 @@ class TestCrewHealth:
         assert engine.state.crew_health == 100.0
 
     def test_crew_health_stable_with_full_coverage(self, engine):
-        """With all crops healthy (~81% calorie coverage), crew health should stay high."""
+        """With all crops healthy (~81% calorie coverage ≥ 80% threshold), crew health should stay at 100."""
         engine.tick(10)
-        # Small decay expected since coverage is ~81% not 100%, but should stay above 95
-        assert engine.state.crew_health >= 95.0
+        # Coverage ~81% exceeds 80% threshold, so health should recover/stay at 100
+        assert engine.state.crew_health >= 99.0
 
     def test_crew_health_decays_faster_with_dead_crops(self, engine):
         """All-dead crops should cause faster health decay than healthy crops."""
@@ -729,8 +729,8 @@ class TestCrewHealth:
         for z in engine.state.zones[1:]:
             for c in z.crops:
                 c.health = 0
-        # Run for ~100 sols (400 ticks) — Zone A alone covers ~69%, deficit ~31%
+        # Run for ~100 sols (400 ticks) — Zone A alone covers ~69%, deficit vs 80% threshold
         engine.tick(400)
-        assert engine.state.crew_health < 50.0, (
-            f"Expected significant crew health loss with only Zone A, got {engine.state.crew_health}"
+        assert engine.state.crew_health < 80.0, (
+            f"Expected crew health loss with only Zone A, got {engine.state.crew_health}"
         )

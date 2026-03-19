@@ -260,13 +260,19 @@ class SimulationEngine:
                     crop.health = max(0.0, crop.health - decay_rate)
 
     def _update_crew_health(self) -> None:
-        """Adjust crew health based on calorie coverage."""
+        """Adjust crew health based on calorie coverage.
+
+        The greenhouse targets 80% of crew calories — Earth rations cover the rest.
+        Health only decays when coverage drops below that 80% threshold.
+        """
         coverage = compute_nutrition_coverage(self.state)
         cal_data = coverage.get("calories_kcal", {})
         calorie_pct = cal_data.get("coverage_percent", 0.0) / 100.0
 
-        if calorie_pct < 1.0:
-            deficit = 1.0 - calorie_pct
+        # 80% coverage = fully fed (Earth rations supplement the rest)
+        greenhouse_target = 0.80
+        if calorie_pct < greenhouse_target:
+            deficit = (greenhouse_target - calorie_pct) / greenhouse_target
             self.state.crew_health = max(
                 0.0, self.state.crew_health - deficit * CREW_HEALTH_DECAY_PER_TICK
             )
