@@ -131,7 +131,7 @@ export function HexZoneMap() {
             opacity: cardsOpacity,
             transform: `scale(${cardsScale})`,
           }}
-          className="mx-auto grid w-full max-w-[720px] grid-cols-2 gap-4"
+          className="mx-auto grid w-full max-w-[980px] grid-cols-2 gap-2"
         >
           {hexZones.map((zone) => {
             const isHovered = hoveredZoneId === zone.id;
@@ -142,23 +142,23 @@ export function HexZoneMap() {
                 onClick={() => void enterZoneDetail(zone.id)}
                 onMouseEnter={() => setHoveredZoneId(zone.id)}
                 onMouseLeave={() => setHoveredZoneId(null)}
-                className="rounded-xl border border-[#E2E8E0] bg-white px-6 pb-5 pt-8 text-left"
+                className="rounded-xl bg-transparent px-3 py-3 text-left"
                 style={{
                   cursor: "pointer",
-                  borderColor: isHovered ? "#C5CCC3" : "#E2E8E0",
-                  transform: isHovered ? "translateY(-2px)" : "translateY(0px)",
+                  transform: isHovered ? "translateY(-2px) scale(1.01)" : "translateY(0px) scale(1)",
+                  outline: isHovered ? "1px solid #d8e6d9" : "1px solid transparent",
                 }}
               >
-                <div className="mb-3 flex justify-center">
-                  <HoneycombTopDown zone={zone} size={152} />
+                <div className="mb-2 flex justify-center">
+                  <HoneycombTopDown zone={zone} size={220} />
                 </div>
-                <div className="mb-1 flex items-center justify-between">
-                  <h3 className="text-[15px] font-medium text-[#1a2b20]">{zone.name}</h3>
+                <div className="mb-1 flex items-center justify-between px-2">
+                  <h3 className="text-lg font-medium text-[#1a2b20]">{zone.name}</h3>
                   <span className={`rounded-full px-3 py-1 text-xs font-medium ${badgeStyles(zone.badgeTone)}`}>
                     {zone.badgeLabel}
                   </span>
                 </div>
-                <p className="text-[13px] text-[#6b8f6b]">{zone.subtitle}</p>
+                <p className="px-2 text-sm text-[#6b8f6b]">{zone.subtitle}</p>
               </button>
             );
           })}

@@ -9,6 +9,33 @@ export const astronautProfile: AstronautProfile = {
   initials: "NT",
 };
 
+export const crewTeam: AstronautProfile[] = [
+  {
+    name: "Ari Kwon",
+    role: "Systems Engineer",
+    sol: 247,
+    crewId: "MC-2039-01",
+    mission: "Ares IV - Surface Ops",
+    initials: "AK",
+  },
+  {
+    name: "Maya Petrov",
+    role: "Flight Medic",
+    sol: 247,
+    crewId: "MC-2039-02",
+    mission: "Ares IV - Surface Ops",
+    initials: "MP",
+  },
+  {
+    name: "Luis Ortega",
+    role: "EVA Specialist",
+    sol: 247,
+    crewId: "MC-2039-03",
+    mission: "Ares IV - Surface Ops",
+    initials: "LO",
+  },
+];
+
 export const greenhouseHealth: GreenhouseHealth = {
   score: 85,
   label: "HEALTHY",
