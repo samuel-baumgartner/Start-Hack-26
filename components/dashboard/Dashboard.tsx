@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { actionQueue, statusBars } from "@/data/actions";
 import { greenhouseHealth, healthLog, astronautProfile, crewTeam } from "@/data/zones";
 import { alerts } from "@/data/alerts";
@@ -27,6 +27,25 @@ export function Dashboard() {
   const seenAlertIdsRef = useRef<Set<string>>(new Set(alerts.map((alert) => alert.id)));
   const alertTimeoutRef = useRef<number | null>(null);
   const headerAnchorRef = useRef<HTMLDivElement | null>(null);
+  const alertAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const playAlertSound = useCallback(() => {
+    if (typeof window === "undefined") return;
+
+    if (!alertAudioRef.current) {
+      const audio = new Audio("/sounds/alert-8.mp3");
+      audio.preload = "auto";
+      alertAudioRef.current = audio;
+    }
+
+    const audio = alertAudioRef.current;
+    if (!audio) return;
+
+    audio.currentTime = 0;
+    void audio.play().catch(() => {
+      // Ignore autoplay rejections when no user interaction happened yet.
+    });
+  }, []);
 
   const topAlerts = useMemo(() => {
     const actionQueueTexts = new Set(actionQueue.map((item) => item.text.trim()));
@@ -52,6 +71,7 @@ export function Dashboard() {
     }
 
     setActiveHeaderAlert(newlyArrived);
+    playAlertSound();
     setHiddenAlertIds((prev) => {
       const next = new Set(prev);
       next.add(newlyArrived.id);
@@ -69,7 +89,7 @@ export function Dashboard() {
       });
       alertTimeoutRef.current = null;
     }, 3200);
-  }, [topAlerts]);
+  }, [topAlerts, playAlertSound]);
 
   useEffect(() => {
     return () => {
@@ -92,6 +112,7 @@ export function Dashboard() {
 
       setForcedAlertProposal((prev) => {
         if (prev) return prev;
+        playAlertSound();
         return {
           id: `forced-${Date.now()}`,
           category: "Sand storm",
@@ -104,7 +125,7 @@ export function Dashboard() {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [playAlertSound]);
 
   function acceptForcedAlert() {
     if (!forcedAlertProposal) return;

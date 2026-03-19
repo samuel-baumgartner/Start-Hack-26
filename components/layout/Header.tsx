@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, ChevronDown, CircleUserRound } from "lucide-react";
 import { CrewAvatar } from "@/components/shared/CrewAvatar";
+import { HeartbeatEffectButton } from "@/components/ui/heartbeat-effect-button";
 import type { AlertItem, AstronautProfile, GreenhouseHealth, HealthLogEntry } from "@/types/greenhouse";
 
 interface HeaderProps {
@@ -86,21 +87,21 @@ export function Header({
               <p className="mt-2 text-base font-medium text-red-800">{forcedAlertProposal.text}</p>
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-2 self-start">
+          <div className="flex shrink-0 items-center gap-2 self-end pb-1">
             <button
               type="button"
               onClick={onDenyForcedAlert}
-              className="rounded-md border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-700 transition-colors hover:bg-red-50"
+              className="rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-50"
             >
               Deny
             </button>
-            <button
+            <HeartbeatEffectButton
               type="button"
               onClick={onAcceptForcedAlert}
-              className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-red-700"
+              className="bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700"
             >
               Accept
-            </button>
+            </HeartbeatEffectButton>
           </div>
         </div>
       ) : activeAlert ? (
