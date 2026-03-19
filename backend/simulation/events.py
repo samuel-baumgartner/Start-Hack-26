@@ -6,7 +6,7 @@ import random
 from typing import TYPE_CHECKING
 
 from simulation.sensors import fail_sensor
-from simulation.state import EventLogEntry
+from simulation.state import DiseaseState, EventLogEntry
 
 if TYPE_CHECKING:
     from simulation.engine import SimulationEngine
@@ -37,6 +37,12 @@ def _trigger_dust_storm(engine: SimulationEngine, params: dict) -> dict:
         return {"status": "error", "message": "Dust storm already active"}
 
     severity = params.get("severity", "regional")
+    if severity not in ("regional", "global"):
+        return {"status": "error", "message": f"severity must be 'regional' or 'global', got '{severity}'"}
+    if "opacity_tau" in params and params["opacity_tau"] < 0:
+        return {"status": "error", "message": "opacity_tau must be >= 0"}
+    if "duration_sols" in params and params["duration_sols"] < 1:
+        return {"status": "error", "message": "duration_sols must be >= 1"}
     if severity == "global":
         tau = random.uniform(4.0, 5.5)
         duration = random.randint(30, 90)
@@ -64,14 +70,32 @@ def _trigger_dust_storm(engine: SimulationEngine, params: dict) -> dict:
 
 
 def _trigger_disease(engine: SimulationEngine, params: dict) -> dict:
-    """Disease outbreak: targets a zone, drains health per tick, can spread."""
-    zone_id = params.get("zone_id", "C")
+    """Disease outbreak: creates a DiseaseState in the target zone."""
+    from config import DISEASE_INCUBATION_TICKS
+
+    zone_id = params.get("zone_id", "C").upper()
     disease_type = params.get("disease_type", "pythium_root_rot")
+
+    if disease_type not in DISEASE_INCUBATION_TICKS:
+        return {"status": "error", "message": f"Unknown disease type: {disease_type}"}
 
     zone = engine._get_zone(zone_id)
     if not zone:
         return {"status": "error", "message": f"Zone {zone_id} not found"}
 
+    # Don't stack the same disease type in the same zone
+    if any(d.zone_id == zone_id and d.disease_type == disease_type for d in engine.state.diseases):
+        return {"status": "error", "message": f"{disease_type} already active in Zone {zone_id}"}
+
+    ds = DiseaseState(
+        disease_type=disease_type,
+        zone_id=zone_id,
+        stage="incubating",
+        severity=5.0,
+    )
+    engine.state.diseases.append(ds)
+
+    # Sync legacy fields
     env = engine.state.environment
     env.disease_active = True
     env.disease_zone_id = zone_id
@@ -106,14 +130,17 @@ def _trigger_power_failure(engine: SimulationEngine, params: dict) -> dict:
     return {"status": "ok", "message": desc, "reduction": clamped}
 
 
-VALID_SENSORS = {"temperature", "humidity", "co2", "par", "health", "biomass", "water_level", "ph", "ec", "battery"}
+VALID_SENSORS = {"temperature", "humidity", "co2", "par", "health", "biomass", "water_level", "ph", "ec", "battery", "water_quality", "leaf_color", "growth_anomaly"}
 
 
 def _trigger_sensor_failure(engine: SimulationEngine, params: dict) -> dict:
     """Fail a specific sensor in a zone."""
-    zone_id = params.get("zone_id", "A")
+    zone_id = params.get("zone_id", "A").upper()
     sensor_name = params.get("sensor_name", "temperature")
-    duration = max(1, params.get("duration_ticks", 10))
+    raw_duration = params.get("duration_ticks", 10)
+    if raw_duration < 1:
+        return {"status": "error", "message": "duration_ticks must be >= 1"}
+    duration = raw_duration
 
     # Validate zone exists
     zone = engine._get_zone(zone_id)
@@ -139,7 +166,7 @@ def _trigger_sensor_failure(engine: SimulationEngine, params: dict) -> dict:
 
 def _trigger_crop_failure(engine: SimulationEngine, params: dict) -> dict:
     """Set crop health to 0 in a zone."""
-    zone_id = params.get("zone_id", "C")
+    zone_id = params.get("zone_id", "C").upper()
     crop_name = params.get("crop_name")  # None = all crops in zone
 
     zone = engine._get_zone(zone_id)

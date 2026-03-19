@@ -12,7 +12,7 @@ export function useAutoTick() {
   useEffect(() => {
     if (USE_MOCK) return;
     getAutoTickStatus()
-      .then((s) => setEnabled(s.running))
+      .then((s) => setEnabled(s.enabled))
       .catch(() => { /* backend might not be running */ });
   }, []);
 
