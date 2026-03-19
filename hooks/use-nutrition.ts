@@ -9,21 +9,28 @@ const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
 
 export function useNutrition(totalTicks?: number) {
   const [nutrition, setNutrition] = useState<NutritionData | null>(USE_MOCK ? MOCK_NUTRITION : null);
-  const [isLoading, setIsLoading] = useState(!USE_MOCK);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(USE_MOCK);
+  const [lastCompletedTick, setLastCompletedTick] = useState<number | undefined>(USE_MOCK ? totalTicks : undefined);
   const lastTickRef = useRef<number | undefined>(undefined);
+
+  const isLoading =
+    !USE_MOCK &&
+    (!hasLoadedOnce || (totalTicks !== undefined && totalTicks !== lastCompletedTick));
 
   useEffect(() => {
     if (USE_MOCK) return;
     if (totalTicks !== undefined && totalTicks === lastTickRef.current) return;
     lastTickRef.current = totalTicks;
 
-    setIsLoading(true);
     getSimNutrition()
       .then((data) => {
         setNutrition(data);
       })
       .catch(() => { /* silent — nutrition is supplemental */ })
-      .finally(() => setIsLoading(false));
+      .finally(() => {
+        setHasLoadedOnce(true);
+        setLastCompletedTick(totalTicks);
+      });
   }, [totalTicks]);
 
   return { nutrition, isLoading };
