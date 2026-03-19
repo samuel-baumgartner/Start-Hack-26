@@ -12,7 +12,12 @@ async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
 export const getSimState = () => fetchJSON<SimState>(`${BASE}/sim/state`);
 export const getSimSensors = () => fetchJSON<unknown>(`${BASE}/sim/sensors`);
 export const getSimNutrition = () => fetchJSON<NutritionData>(`${BASE}/sim/nutrition`);
-export const postSimTick = () => fetchJSON<SimState>(`${BASE}/sim/tick`, { method: "POST" });
+export const postSimTick = () =>
+  fetchJSON<SimState>(`${BASE}/sim/tick`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ n: 1 }),
+  });
 
 // ── Agent ──
 export const postAgentQuery = (message: string) =>
@@ -40,6 +45,39 @@ export const getAutoTickStatus = () =>
 
 // ── Events ──
 export const getEventLog = () => fetchJSON<unknown>(`${BASE}/events/log`);
+
+// ── Events (trigger) ──
+export const triggerDustStorm = (severity = "regional") =>
+  fetchJSON<unknown>(`${BASE}/events/dust-storm`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ severity }),
+  });
+
+export const triggerDisease = (zone_id = "C", disease_type = "pythium_root_rot") =>
+  fetchJSON<unknown>(`${BASE}/events/disease`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ zone_id, disease_type }),
+  });
+
+export const triggerPowerFailure = (reduction = 0.5) =>
+  fetchJSON<unknown>(`${BASE}/events/power-failure`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reduction }),
+  });
+
+// ── Simulation (extended) ──
+export const postSimTickN = (n = 1) =>
+  fetchJSON<SimState>(`${BASE}/sim/tick`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ n }),
+  });
+
+export const resetSim = () =>
+  fetchJSON<unknown>(`${BASE}/sim/reset`, { method: "POST" });
 
 // ── SSE ──
 export function subscribeSSE(onMessage: (data: unknown) => void, onError?: () => void) {

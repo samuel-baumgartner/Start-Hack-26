@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Send, Bot, User } from "lucide-react";
+import Markdown from "react-markdown";
 import { cn } from "@/lib/utils";
 import type { ChatMessage } from "@/lib/types";
 
@@ -70,7 +71,24 @@ export function AgentChat({ messages, isLoading, onSend }: AgentChatProps) {
                 msg.role === "user" ? "chat-user" : "chat-agent",
               )}
             >
-              {msg.content}
+              {msg.role === "agent" ? (
+                <Markdown
+                  components={{
+                    h1: ({ children }) => <h1 className="text-sm font-bold text-mars-green mb-1">{children}</h1>,
+                    h2: ({ children }) => <h2 className="text-xs font-bold text-mars-green mb-1">{children}</h2>,
+                    h3: ({ children }) => <h3 className="text-xs font-semibold text-mars-blue mb-0.5">{children}</h3>,
+                    strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+                    ul: ({ children }) => <ul className="list-disc list-inside space-y-0.5 my-1">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal list-inside space-y-0.5 my-1">{children}</ol>,
+                    p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
+                    code: ({ children }) => <code className="bg-secondary px-1 py-0.5 rounded text-[10px] font-mono">{children}</code>,
+                  }}
+                >
+                  {msg.content}
+                </Markdown>
+              ) : (
+                msg.content
+              )}
             </div>
             {msg.role === "user" && (
               <User className="h-4 w-4 text-mars-green shrink-0 mt-1.5" />

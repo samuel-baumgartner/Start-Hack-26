@@ -22,15 +22,18 @@ export function useNutrition(totalTicks?: number) {
     if (totalTicks !== undefined && totalTicks === lastTickRef.current) return;
     lastTickRef.current = totalTicks;
 
+    let cancelled = false;
     getSimNutrition()
       .then((data) => {
-        setNutrition(data);
+        if (!cancelled) setNutrition(data);
       })
       .catch(() => { /* silent — nutrition is supplemental */ })
       .finally(() => {
+        if (cancelled) return;
         setHasLoadedOnce(true);
         setLastCompletedTick(totalTicks);
       });
+    return () => { cancelled = true; };
   }, [totalTicks]);
 
   return { nutrition, isLoading };
