@@ -42,6 +42,26 @@ export interface ActionItem {
   source: "triage" | "disease" | "nutrition" | "efficiency";
 }
 
+export type AlertCategory =
+  | "Harvest"
+  | "Dust storm"
+  | "Disease"
+  | "Water"
+  | "Nutrient depletion"
+  | "Power"
+  | "Plant stress"
+  | "CO2/O2 balance"
+  | "Temperature"
+  | "Emergency reseed";
+
+export interface AlertItem {
+  id: string;
+  category: AlertCategory;
+  urgency: Urgency;
+  text: string;
+  timestamp: string;
+}
+
 export interface CropMetric {
   water: "Low" | "OK" | "High";
   humidity: string;

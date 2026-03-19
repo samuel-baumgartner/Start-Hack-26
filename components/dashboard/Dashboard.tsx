@@ -1,20 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import { actionQueue, statusBars } from "@/data/actions";
-import { greenhouseHealth, healthLog, astronautProfile } from "@/data/zones";
-import { marsWeather } from "@/data/weather";
+import { greenhouseHealth, healthLog, astronautProfile, crewTeam } from "@/data/zones";
 import { Header } from "@/components/layout/Header";
-import { Sidebar, type SidebarTab } from "@/components/layout/Sidebar";
+import { Sidebar } from "@/components/layout/Sidebar";
 import { StatusBars } from "./StatusBars";
 import { ActionQueue } from "./ActionQueue";
 import { AIChat } from "@/components/chat/AIChat";
-import { MarsWeather } from "@/components/weather/MarsWeather";
 import { HexZoneMap } from "@/components/hexzone/HexZoneMap";
+import { AlertPanel } from "./AlertPanel";
 
 export function Dashboard() {
-  const [activeTab, setActiveTab] = useState<SidebarTab>("chat");
-
   return (
     <main className="relative min-h-screen px-6 py-5">
       <div className="subtle-noise pointer-events-none absolute inset-0" />
@@ -25,18 +21,13 @@ export function Dashboard() {
           <div className="grid min-h-[760px] grid-rows-[minmax(0,1fr)_auto] gap-4">
             <HexZoneMap />
 
-            <div className="grid self-end gap-3 lg:grid-cols-[minmax(0,1fr)_360px]">
+            <div className="grid self-end gap-3 lg:grid-cols-2">
               <StatusBars bars={statusBars} />
               <ActionQueue actions={actionQueue} />
             </div>
           </div>
 
-          <Sidebar
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            chatView={<AIChat />}
-            weatherView={<MarsWeather data={marsWeather} />}
-          />
+          <Sidebar alertView={<AlertPanel />} teamMembers={crewTeam} chatView={<AIChat />} />
         </section>
       </div>
     </main>
