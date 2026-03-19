@@ -1,7 +1,26 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async rewrites() {
+    return [
+      {
+        source: "/api/sim/:path*",
+        destination: "http://localhost:8000/sim/:path*",
+      },
+      {
+        source: "/api/agent/:path*",
+        destination: "http://localhost:8000/agent/:path*",
+      },
+      {
+        source: "/api/events/:path*",
+        destination: "http://localhost:8000/events/:path*",
+      },
+      {
+        source: "/api/auto-tick/:path*",
+        destination: "http://localhost:8000/auto-tick/:path*",
+      },
+    ];
+  },
 };
 
 export default nextConfig;

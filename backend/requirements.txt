@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+pydantic
+scipy
+strands-agents[mcp]
+strands-agents-tools
+boto3
