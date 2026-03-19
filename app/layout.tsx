@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Start Hack",
+  title: "Mars Greenhouse — Mission Control",
   description:
-    "Starter repository with Next.js, shadcn/ui, Framer Motion, and push-time build checks.",
+    "Real-time monitoring dashboard for the Syngenta Mars greenhouse simulation.",
 };
 
 export default function RootLayout({
@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`dark ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
