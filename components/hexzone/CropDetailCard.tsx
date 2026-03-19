@@ -2,6 +2,8 @@ import type { HexCrop } from "@/data/hexZones";
 
 interface CropDetailCardProps {
   crop: HexCrop;
+  plotLabel?: string;
+  isActive?: boolean;
 }
 
 function badgeStyles(health: HexCrop["health"]) {
@@ -20,14 +22,25 @@ function healthLabel(health: HexCrop["health"]) {
   return "Healthy";
 }
 
-export function CropDetailCard({ crop }: CropDetailCardProps) {
+export function CropDetailCard({ crop, plotLabel, isActive = false }: CropDetailCardProps) {
   return (
-    <article className="rounded-xl border border-[#E2E8E0] bg-white p-4 shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
+    <article
+      className={`rounded-xl border bg-white p-4 shadow-[0_2px_8px_rgba(0,0,0,0.06)] transition-all ${
+        isActive
+          ? "border-[#9cd4aa] ring-2 ring-[#d2efda] shadow-[0_8px_20px_rgba(13,84,44,0.14)]"
+          : "border-[#E2E8E0]"
+      }`}
+    >
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-xl">{crop.emoji}</span>
-        <span className={`rounded-full px-2 py-1 text-xs font-medium ${badgeStyles(crop.health)}`}>
-          {healthLabel(crop.health)}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xl">{crop.emoji}</span>
+          {plotLabel ? (
+            <span className="rounded-full border border-[#cfe5d4] bg-[#edf8ef] px-2 py-0.5 text-[11px] font-semibold text-[#2d6a46]">
+              {plotLabel}
+            </span>
+          ) : null}
+        </div>
+        <span className={`rounded-full px-2 py-1 text-xs font-medium ${badgeStyles(crop.health)}`}>{healthLabel(crop.health)}</span>
       </div>
 
       <h4 className="text-[15px] font-medium text-[#1a2b20]">{crop.name}</h4>

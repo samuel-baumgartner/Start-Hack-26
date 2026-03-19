@@ -1,17 +1,28 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, CircleUserRound } from "lucide-react";
+import { AlertTriangle, ChevronDown, CircleUserRound } from "lucide-react";
 import { ProgressBar } from "@/components/shared/ProgressBar";
-import type { AstronautProfile, GreenhouseHealth, HealthLogEntry } from "@/types/greenhouse";
+import type { AlertItem, AstronautProfile, GreenhouseHealth, HealthLogEntry } from "@/types/greenhouse";
 
 interface HeaderProps {
   profile: AstronautProfile;
   health: GreenhouseHealth;
   logEntries: HealthLogEntry[];
+  activeAlert?: AlertItem | null;
 }
 
-export function Header({ profile, health, logEntries }: HeaderProps) {
+function alertBadgeClasses(urgency: AlertItem["urgency"]): string {
+  if (urgency === "critical") {
+    return "border-red-200 bg-red-50 text-red-700";
+  }
+  if (urgency === "warning") {
+    return "border-amber-200 bg-amber-50 text-amber-700";
+  }
+  return "border-emerald-200 bg-emerald-50 text-emerald-700";
+}
+
+export function Header({ profile, health, logEntries, activeAlert }: HeaderProps) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [logOpen, setLogOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement | null>(null);
@@ -39,80 +50,108 @@ export function Header({ profile, health, logEntries }: HeaderProps) {
   }, []);
 
   return (
-    <header className="glass-card fade-in relative rounded-3xl p-6">
-      <div className="mb-3 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-4xl font-semibold tracking-tight text-[#223929]">Welcome back, NELAN</h1>
-          <p className="text-lg text-[#63816f]">Autonomous greenhouse guidance is active.</p>
-        </div>
-
-        <div className="relative" ref={profileRef}>
-          <button
-            className="group flex items-center gap-2 rounded-full border border-[#d6e8d8] bg-white/90 px-3 py-2.5 shadow-sm transition-colors hover:bg-white"
-            onClick={() => setProfileOpen((prev) => !prev)}
-            aria-label="Open astronaut profile"
-          >
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e0e2f8] text-base font-semibold text-[#36398e]">
-              {profile.initials}
-            </span>
-            <CircleUserRound className="h-5 w-5 text-[#52705b] group-hover:text-[#36398e]" />
-          </button>
-
-          {profileOpen ? (
-            <div className="panel-card absolute right-0 top-14 z-20 w-72 rounded-2xl p-4 text-base">
-              <p className="font-semibold text-[#163126]">{profile.name}</p>
-              <p className="text-sm text-[#607f6a]">{profile.role}</p>
-              <div className="mt-3 space-y-2 text-sm text-[#486554]">
-                <p>
-                  Current Sol: <span className="font-mono text-[#1f3f2d]">{profile.sol}</span>
-                </p>
-                <p>
-                  Crew ID: <span className="font-mono text-[#1f3f2d]">{profile.crewId}</span>
-                </p>
-                <p>{profile.mission}</p>
-              </div>
-            </div>
-          ) : null}
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <div className="flex items-center gap-3">
-          <span className="min-w-fit text-lg font-medium text-[#32503e]">Greenhouse Health</span>
-          <ProgressBar
-            value={health.score}
-            gradientClass="bg-gradient-to-r from-[#3dbd66] to-[#009f3c]"
-            className="h-3.5"
-          />
-          <span className="font-mono text-xl font-semibold text-[#1f4e34]">{health.score}%</span>
-          <span className="rounded-full bg-emerald-100 px-3 py-1.5 text-sm font-semibold text-[#0f7a32]">
-            {health.label} ✓
-          </span>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => setLogOpen((prev) => !prev)}
-            className="inline-flex items-center gap-1 text-sm text-[#476554] underline-offset-2 hover:text-[#36398e] hover:underline"
-          >
-            Health log
-            <ChevronDown className={`h-4 w-4 transition-transform ${logOpen ? "rotate-180" : ""}`} />
-          </button>
-          <span className="text-sm text-[#6b8f6b]">{health.trend}</span>
-        </div>
-
-        {logOpen ? (
-          <div className="panel-card rounded-2xl p-4 text-sm text-[#4f6d5b]">
-            {logEntries.map((entry) => (
-              <p key={entry.id} className="mb-2 last:mb-0">
-                <span className="mr-2 font-mono text-[#3f5e4b]">{entry.timestamp}</span>
-                {entry.change}
-                <span className="ml-2 font-semibold text-[#11813a]">{entry.delta}</span>
-              </p>
-            ))}
+    <header
+      className={`glass-card fade-in relative rounded-3xl p-6 transition-all duration-300 ${
+        activeAlert ? "ring-2 ring-amber-300/90 shadow-[0_0_0_10px_rgba(252,211,77,0.22)]" : ""
+      }`}
+    >
+      {activeAlert ? (
+        <div className="flex min-h-[166px] items-center gap-4 rounded-2xl border border-amber-300/80 bg-amber-50/85 px-5 py-4 animate-pulse">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
+            <AlertTriangle className="h-8 w-8" />
           </div>
-        ) : null}
-      </div>
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-700">New alert</p>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <span
+                className={`inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${alertBadgeClasses(
+                  activeAlert.urgency,
+                )}`}
+              >
+                {activeAlert.category}
+              </span>
+              <span className="font-mono text-xs text-[#8d7045]">{activeAlert.timestamp}</span>
+            </div>
+            <p className="mt-2 text-base font-medium text-[#4f3a1f]">{activeAlert.text}</p>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="mb-3 flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-4xl font-semibold tracking-tight text-[#223929]">Welcome back, NELAN</h1>
+              <p className="text-lg text-[#63816f]">Autonomous greenhouse guidance is active.</p>
+            </div>
+
+            <div className="relative" ref={profileRef}>
+              <button
+                className="group flex items-center gap-2 rounded-full border border-[#d6e8d8] bg-white/90 px-3 py-2.5 shadow-sm transition-colors hover:bg-white"
+                onClick={() => setProfileOpen((prev) => !prev)}
+                aria-label="Open astronaut profile"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e0e2f8] text-base font-semibold text-[#36398e]">
+                  {profile.initials}
+                </span>
+                <CircleUserRound className="h-5 w-5 text-[#52705b] group-hover:text-[#36398e]" />
+              </button>
+
+              {profileOpen ? (
+                <div className="panel-card absolute right-0 top-14 z-20 w-72 rounded-2xl p-4 text-base">
+                  <p className="font-semibold text-[#163126]">{profile.name}</p>
+                  <p className="text-sm text-[#607f6a]">{profile.role}</p>
+                  <div className="mt-3 space-y-2 text-sm text-[#486554]">
+                    <p>
+                      Current Sol: <span className="font-mono text-[#1f3f2d]">{profile.sol}</span>
+                    </p>
+                    <p>
+                      Crew ID: <span className="font-mono text-[#1f3f2d]">{profile.crewId}</span>
+                    </p>
+                    <p>{profile.mission}</p>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="min-w-fit text-lg font-medium text-[#32503e]">Greenhouse Health</span>
+              <ProgressBar
+                value={health.score}
+                gradientClass="bg-gradient-to-r from-[#3dbd66] to-[#009f3c]"
+                className="h-3.5"
+              />
+              <span className="font-mono text-xl font-semibold text-[#1f4e34]">{health.score}%</span>
+              <span className="rounded-full bg-emerald-100 px-3 py-1.5 text-sm font-semibold text-[#0f7a32]">
+                {health.label} ✓
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => setLogOpen((prev) => !prev)}
+                className="inline-flex items-center gap-1 text-sm text-[#476554] underline-offset-2 hover:text-[#36398e] hover:underline"
+              >
+                Health log
+                <ChevronDown className={`h-4 w-4 transition-transform ${logOpen ? "rotate-180" : ""}`} />
+              </button>
+              <span className="text-sm text-[#6b8f6b]">{health.trend}</span>
+            </div>
+
+            {logOpen ? (
+              <div className="panel-card rounded-2xl p-4 text-sm text-[#4f6d5b]">
+                {logEntries.map((entry) => (
+                  <p key={entry.id} className="mb-2 last:mb-0">
+                    <span className="mr-2 font-mono text-[#3f5e4b]">{entry.timestamp}</span>
+                    {entry.change}
+                    <span className="ml-2 font-semibold text-[#11813a]">{entry.delta}</span>
+                  </p>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </>
+      )}
     </header>
   );
 }

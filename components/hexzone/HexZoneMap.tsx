@@ -4,17 +4,45 @@ import { useMemo, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { hexZones } from "@/data/hexZones";
 import type { HexZone } from "@/data/hexZones";
-import { animate, delay } from "./animation";
+import { animate } from "./animation";
 import { HoneycombTopDown } from "./HoneycombTopDown";
-import { HoneycombSideView } from "./HoneycombSideView";
+import { HexZoneThreeView } from "./HexZoneThreeView";
 import { CropDetailCard } from "./CropDetailCard";
 
 type ViewPhase = "overview" | "detailing" | "detail";
+const DETAIL_PLOT_COUNT = 12;
+
+interface PlotSensors {
+  moisture: number;
+  temperature: number;
+  ph: number;
+}
+
+function plotRangeLabel(plotIndices: number[]): string {
+  if (plotIndices.length === 0) return "";
+  const sorted = [...plotIndices].sort((a, b) => a - b);
+  if (sorted.length === 1) return `Plot ${sorted[0] + 1}`;
+  return `Plots ${sorted[0] + 1}-${sorted[sorted.length - 1] + 1}`;
+}
 
 function badgeStyles(tone: HexZone["badgeTone"]) {
   if (tone === "red") return "border border-[#F5C1C1] bg-[#FCEBEB] text-[#791F1F]";
   if (tone === "amber") return "border border-[#FFE0B2] bg-[#FFF8E1] text-[#A34E11]";
   return "border border-[#C8E6C9] bg-[#E8F5E9] text-[#1B5E20]";
+}
+
+function sensorSnapshot(zoneId: HexZone["id"], plotIndex: number): PlotSensors {
+  const zoneSeed = zoneId.charCodeAt(0);
+  const phase = plotIndex * 0.7 + zoneSeed * 0.11;
+  const moisture = 48 + (zoneSeed % 7) + Math.sin(phase) * 7;
+  const temperature = 21 + (zoneSeed % 3) + Math.cos(phase * 0.8) * 1.8;
+  const ph = 6.3 + Math.sin(phase * 0.6) * 0.35;
+
+  return {
+    moisture: Math.round(moisture * 10) / 10,
+    temperature: Math.round(temperature * 10) / 10,
+    ph: Math.round(ph * 100) / 100,
+  };
 }
 
 export function HexZoneMap() {
@@ -25,17 +53,61 @@ export function HexZoneMap() {
 
   const [cardsOpacity, setCardsOpacity] = useState(1);
   const [cardsScale, setCardsScale] = useState(1);
-  const [topDownOpacity, setTopDownOpacity] = useState(1);
-  const [sideViewOpacity, setSideViewOpacity] = useState(0);
-  const [tiltAngle, setTiltAngle] = useState(0);
+  const [cameraOrbit, setCameraOrbit] = useState(0);
   const [statsOpacity, setStatsOpacity] = useState(0);
   const [statsTranslateY, setStatsTranslateY] = useState(8);
-  const [plantProgress, setPlantProgress] = useState<Record<string, number>>({});
+  const [selectedPlotIndex, setSelectedPlotIndex] = useState<number | null>(null);
 
   const activeZone = useMemo(
     () => hexZones.find((zone) => zone.id === activeZoneId) ?? null,
     [activeZoneId],
   );
+  const detailPlotSlots = useMemo(() => {
+    if (!activeZone) return [];
+    const activeCrops = activeZone.slots.filter((slot) => slot.crop).map((slot) => slot.crop!);
+    const fallbackCrops = hexZones
+      .find((zone) => zone.id === "A")
+      ?.slots.filter((slot) => slot.crop)
+      .map((slot) => slot.crop!) ?? [];
+
+    const primaryCrop = activeCrops[0] ?? fallbackCrops[0];
+    const secondaryCrop = activeCrops[1] ?? fallbackCrops[1] ?? primaryCrop;
+
+    if (!primaryCrop || !secondaryCrop) return [];
+
+    return Array.from({ length: DETAIL_PLOT_COUNT }, (_, index) => ({
+      id: `${activeZone.id}-plot-${index + 1}`,
+      crop: index < DETAIL_PLOT_COUNT / 2 ? primaryCrop : secondaryCrop,
+      genericType: "generic" as const,
+    }));
+  }, [activeZone]);
+  const cropSummaries = useMemo(() => {
+    const grouped = new Map<string, { crop: NonNullable<(typeof detailPlotSlots)[number]["crop"]>; plotIndices: number[] }>();
+    detailPlotSlots.forEach((slot, index) => {
+      if (!slot.crop) return;
+      const existing = grouped.get(slot.crop.id);
+      if (existing) {
+        existing.plotIndices.push(index);
+        return;
+      }
+      grouped.set(slot.crop.id, { crop: slot.crop, plotIndices: [index] });
+    });
+    return Array.from(grouped.values()).map((entry) => ({
+      crop: entry.crop,
+      plotLabel: plotRangeLabel(entry.plotIndices),
+      plotIndices: entry.plotIndices,
+    }));
+  }, [detailPlotSlots]);
+  const selectedPlotCrop = useMemo(() => {
+    if (selectedPlotIndex === null) return null;
+    const slot = detailPlotSlots[selectedPlotIndex];
+    return slot?.crop ?? null;
+  }, [detailPlotSlots, selectedPlotIndex]);
+  const selectedCropId = selectedPlotCrop?.id ?? null;
+  const selectedSensors = useMemo(() => {
+    if (!activeZone || selectedPlotIndex === null) return null;
+    return sensorSnapshot(activeZone.id, selectedPlotIndex);
+  }, [activeZone, selectedPlotIndex]);
 
   async function enterZoneDetail(zoneId: HexZone["id"]) {
     if (isAnimating) return;
@@ -45,33 +117,17 @@ export function HexZoneMap() {
     setIsAnimating(true);
     setActiveZoneId(zoneId);
     setPhase("detailing");
-    setTopDownOpacity(1);
-    setSideViewOpacity(0);
-    setTiltAngle(0);
+    setCameraOrbit(0);
     setStatsOpacity(0);
     setStatsTranslateY(8);
-    setPlantProgress({});
+    setSelectedPlotIndex(null);
 
     await animate(300, (p) => {
       setCardsOpacity(1 - p);
       setCardsScale(1 - p * 0.04);
     });
 
-    await animate(500, (p) => {
-      setTopDownOpacity(1 - p);
-      setSideViewOpacity(p);
-      setTiltAngle(p * 50);
-    });
-
-    const namedSlotIds = zone.slots.filter((slot) => slot.crop).map((slot) => slot.id);
-    namedSlotIds.forEach((slotId, index) => {
-      window.setTimeout(() => {
-        void animate(400, (p) => {
-          setPlantProgress((prev) => ({ ...prev, [slotId]: p }));
-        });
-      }, index * 150);
-    });
-    await delay(namedSlotIds.length * 150 + 400);
+    await animate(750, (p) => setCameraOrbit(p));
 
     await animate(300, (p) => {
       setStatsOpacity(p);
@@ -91,26 +147,11 @@ export function HexZoneMap() {
       setStatsTranslateY(8 * p);
     });
 
-    const namedSlotIds = activeZone.slots.filter((slot) => slot.crop).map((slot) => slot.id);
-    await animate(200, (p) => {
-      const nextProgress = 1 - p;
-      setPlantProgress((prev) => {
-        const copy = { ...prev };
-        namedSlotIds.forEach((id) => {
-          copy[id] = nextProgress;
-        });
-        return copy;
-      });
-    });
-
-    await animate(400, (p) => {
-      setSideViewOpacity(1 - p);
-      setTopDownOpacity(p);
-      setTiltAngle(50 * (1 - p));
-    });
+    await animate(750, (p) => setCameraOrbit(1 - p));
 
     setPhase("overview");
     setActiveZoneId(null);
+    setSelectedPlotIndex(null);
 
     await animate(300, (p) => {
       setCardsOpacity(p);
@@ -131,7 +172,7 @@ export function HexZoneMap() {
             opacity: cardsOpacity,
             transform: `scale(${cardsScale})`,
           }}
-          className="mx-auto grid w-full max-w-[980px] grid-cols-2 gap-2"
+          className="grid w-full grid-cols-2 gap-4"
         >
           {hexZones.map((zone) => {
             const isHovered = hoveredZoneId === zone.id;
@@ -142,23 +183,28 @@ export function HexZoneMap() {
                 onClick={() => void enterZoneDetail(zone.id)}
                 onMouseEnter={() => setHoveredZoneId(zone.id)}
                 onMouseLeave={() => setHoveredZoneId(null)}
-                className="rounded-xl bg-transparent px-3 py-3 text-left"
+                className="rounded-2xl border border-[#E2E8E0] bg-white px-5 pb-4 pt-4 text-left shadow-[0_5px_20px_rgba(21,50,33,0.05)] transition-shadow"
                 style={{
                   cursor: "pointer",
-                  transform: isHovered ? "translateY(-2px) scale(1.01)" : "translateY(0px) scale(1)",
-                  outline: isHovered ? "1px solid #d8e6d9" : "1px solid transparent",
+                  borderColor: isHovered ? "#B9D4C1" : "#E2E8E0",
+                  transform: isHovered ? "translateY(-2px)" : "translateY(0px)",
+                  boxShadow: isHovered
+                    ? "0 12px 28px rgba(20, 59, 38, 0.08)"
+                    : "0 5px 20px rgba(21, 50, 33, 0.05)",
                 }}
               >
-                <div className="mb-2 flex justify-center">
-                  <HoneycombTopDown zone={zone} size={220} />
+                <div className="mb-3 rounded-xl border border-[#E2EDE4] bg-gradient-to-b from-[#f8fcf8] to-[#f2f7f2] p-2.5">
+                  <div className="flex min-h-[132px] items-center justify-center">
+                    <HoneycombTopDown zone={zone} size={286} />
+                  </div>
                 </div>
-                <div className="mb-1 flex items-center justify-between px-2">
-                  <h3 className="text-lg font-medium text-[#1a2b20]">{zone.name}</h3>
+                <div className="mb-2 flex items-center justify-between">
+                  <h3 className="text-[17px] font-semibold text-[#1a2b20]">{zone.name}</h3>
                   <span className={`rounded-full px-3 py-1 text-xs font-medium ${badgeStyles(zone.badgeTone)}`}>
                     {zone.badgeLabel}
                   </span>
                 </div>
-                <p className="px-2 text-sm text-[#6b8f6b]">{zone.subtitle}</p>
+                <p className="text-sm text-[#6b8f6b]">{zone.subtitle}</p>
               </button>
             );
           })}
@@ -185,27 +231,64 @@ export function HexZoneMap() {
             </div>
           </div>
 
-          <div className="relative mb-4 min-h-[230px] flex-1 rounded-2xl border border-[#dce9de] bg-white/70 p-4">
-            <div
-              style={{
-                opacity: topDownOpacity,
-                transform: `perspective(700px) rotateX(${tiltAngle}deg)`,
-                transformOrigin: "center center",
-              }}
-              className="absolute inset-0 flex items-center justify-center"
+          <div className="relative mb-4 min-h-[340px] flex-1 rounded-2xl border border-[#dce9de] bg-gradient-to-b from-white/85 to-[#f0f5f0] p-2">
+            <div className="absolute inset-0">
+              <HexZoneThreeView
+                zone={activeZone}
+                plotSlots={detailPlotSlots}
+                orbitProgress={cameraOrbit}
+                selectedPlotIndex={selectedPlotIndex}
+                onSelectPlot={(plotIndex) => {
+                  if (plotIndex === selectedPlotIndex) return;
+                  setSelectedPlotIndex(plotIndex);
+                }}
+              />
+            </div>
+            <article
+              style={{ opacity: statsOpacity, transform: `translateY(${statsTranslateY}px)` }}
+              className="pointer-events-none absolute left-5 top-5 z-10 w-[230px] rounded-xl border border-[#d7e7db] bg-white/96 p-3 shadow-[0_10px_24px_rgba(16,52,34,0.12)] backdrop-blur-[2px] transition-all duration-200"
             >
-              <HoneycombTopDown zone={activeZone} size={210} />
-            </div>
-            <div style={{ opacity: sideViewOpacity }} className="absolute inset-0 p-4">
-              <HoneycombSideView zone={activeZone} plantProgress={plantProgress} />
-            </div>
+              <div className="mb-2 flex items-center justify-between">
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-[#4e6a58]">Selected Plot</h4>
+                <span className="rounded-full border border-[#cfe5d4] bg-[#edf8ef] px-2 py-1 text-[11px] text-[#356048]">
+                  {selectedPlotIndex === null ? "None" : `Plot ${selectedPlotIndex + 1}/${DETAIL_PLOT_COUNT}`}
+                </span>
+              </div>
+              {selectedPlotCrop ? (
+                <p className="mb-1.5 text-[11px] font-medium text-[#3a6a4a]">
+                  {selectedPlotCrop.emoji} {selectedPlotCrop.name}
+                </p>
+              ) : null}
+              {selectedSensors ? (
+                <div className="grid grid-cols-1 gap-1.5 text-xs text-[#1f3729]">
+                  <p className="rounded-md bg-[#f5faf6] px-2.5 py-1.5 transition-colors">
+                    💧 Moisture: {selectedSensors.moisture}%
+                  </p>
+                  <p className="rounded-md bg-[#f5faf6] px-2.5 py-1.5 transition-colors">
+                    🌡 Temperature: {selectedSensors.temperature} C
+                  </p>
+                  <p className="rounded-md bg-[#f5faf6] px-2.5 py-1.5 transition-colors">
+                    🧪 pH: {selectedSensors.ph}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-xs text-[#6b8f6b]">Click a hex pot to inspect live sensor values.</p>
+              )}
+            </article>
           </div>
 
           <div
             style={{ opacity: statsOpacity, transform: `translateY(${statsTranslateY}px)` }}
-            className="grid grid-cols-1 gap-3 lg:grid-cols-3"
+            className="grid grid-cols-1 gap-3 lg:grid-cols-2"
           >
-            {activeZone.slots.filter((slot) => slot.crop).map((slot) => <CropDetailCard key={slot.id} crop={slot.crop!} />)}
+            {cropSummaries.map(({ crop, plotLabel }) => (
+              <CropDetailCard
+                key={crop.id}
+                crop={crop}
+                plotLabel={plotLabel}
+                isActive={selectedCropId === crop.id}
+              />
+            ))}
           </div>
         </div>
       ) : null}
