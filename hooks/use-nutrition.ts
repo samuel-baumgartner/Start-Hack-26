@@ -17,13 +17,14 @@ export function useNutrition(totalTicks?: number) {
     if (totalTicks !== undefined && totalTicks === lastTickRef.current) return;
     lastTickRef.current = totalTicks;
 
-    setIsLoading(true);
+    let cancelled = false;
     getSimNutrition()
       .then((data) => {
-        setNutrition(data);
+        if (!cancelled) setNutrition(data);
       })
       .catch(() => { /* silent — nutrition is supplemental */ })
-      .finally(() => setIsLoading(false));
+      .finally(() => { if (!cancelled) setIsLoading(false); });
+    return () => { cancelled = true; };
   }, [totalTicks]);
 
   return { nutrition, isLoading };

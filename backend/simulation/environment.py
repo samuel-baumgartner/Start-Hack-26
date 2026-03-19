@@ -84,13 +84,14 @@ def update_humidity(
     current_humidity: float,
     num_zones_irrigating: int,
     dt_hours: float,
+    target_humidity: float = GREENHOUSE_HUMIDITY_TARGET,
 ) -> float:
     """Humidity increases with irrigation, decays toward target via dehumidification."""
     # Irrigation adds humidity
     irrigation_effect = num_zones_irrigating * 0.5 * dt_hours
 
     # Dehumidification pulls toward target
-    correction = 0.3 * dt_hours * (GREENHOUSE_HUMIDITY_TARGET - current_humidity)
+    correction = 0.3 * dt_hours * (target_humidity - current_humidity)
 
     new_humidity = current_humidity + irrigation_effect + correction
     return max(30.0, min(95.0, new_humidity))
