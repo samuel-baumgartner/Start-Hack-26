@@ -62,7 +62,12 @@ export function Dashboard() {
         {/* Left — zones + resources */}
         <div className="flex-1 min-h-0 flex flex-col gap-3 overflow-y-auto custom-scrollbar">
           <ZoneGrid zones={state.zones} />
-          <ResourcePanel resources={state.resources} />
+          <ResourcePanel
+            resources={state.resources}
+            zones={state.zones}
+            environment={state.environment}
+            nutrition={nutrition}
+          />
         </div>
 
         {/* Right — sidebar */}

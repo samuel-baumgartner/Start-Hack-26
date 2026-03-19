@@ -17,7 +17,6 @@ export function useNutrition(totalTicks?: number) {
     if (totalTicks !== undefined && totalTicks === lastTickRef.current) return;
     lastTickRef.current = totalTicks;
 
-    setIsLoading(true);
     getSimNutrition()
       .then((data) => {
         setNutrition(data);
