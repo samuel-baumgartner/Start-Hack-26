@@ -10,9 +10,9 @@ export const alerts: AlertItem[] = [
   },
   {
     id: "a2",
-    category: "Dust storm",
+    category: "Power",
     urgency: "critical",
-    text: "Storm ETA 4 sols - initiating Tier 1/2/3 triage.",
+    text: "Grid inverter fault detected - throttle non-critical lighting and switch to reserve line.",
     timestamp: "Recommended now",
   },
   {

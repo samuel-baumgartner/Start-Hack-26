@@ -21,6 +21,8 @@ function priorityRank(urgency: AlertItem["urgency"]) {
 
 export function Dashboard() {
   const [activeHeaderAlert, setActiveHeaderAlert] = useState<AlertItem | null>(null);
+  const [forcedAlertProposal, setForcedAlertProposal] = useState<AlertItem | null>(null);
+  const [acceptedForcedAlerts, setAcceptedForcedAlerts] = useState<AlertItem[]>([]);
   const [hiddenAlertIds, setHiddenAlertIds] = useState<Set<string>>(new Set());
   const seenAlertIdsRef = useRef<Set<string>>(new Set(alerts.map((alert) => alert.id)));
   const alertTimeoutRef = useRef<number | null>(null);
@@ -33,10 +35,10 @@ export function Dashboard() {
     return [...candidateAlerts].sort((a, b) => priorityRank(a.urgency) - priorityRank(b.urgency)).slice(0, 2);
   }, []);
 
-  const visibleTopAlerts = useMemo(
-    () => topAlerts.filter((alert) => !hiddenAlertIds.has(alert.id)),
-    [topAlerts, hiddenAlertIds],
-  );
+  const visibleTopAlerts = useMemo(() => {
+    const baseAlerts = topAlerts.filter((alert) => !hiddenAlertIds.has(alert.id));
+    return [...acceptedForcedAlerts, ...baseAlerts];
+  }, [acceptedForcedAlerts, topAlerts, hiddenAlertIds]);
 
   useEffect(() => {
     const seenIds = seenAlertIdsRef.current;
@@ -77,6 +79,43 @@ export function Dashboard() {
     };
   }, []);
 
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key.toLowerCase() !== "f") return;
+      if (event.repeat) return;
+
+      const target = event.target as HTMLElement | null;
+      if (target) {
+        const tag = target.tagName.toLowerCase();
+        if (tag === "input" || tag === "textarea" || target.isContentEditable) return;
+      }
+
+      setForcedAlertProposal((prev) => {
+        if (prev) return prev;
+        return {
+          id: `forced-${Date.now()}`,
+          category: "Sand storm",
+          urgency: "critical",
+          text: "Sand storm alert: optical depth spike detected. Initiate Tier 1/2/3 storm triage now.",
+          timestamp: "Just now",
+        };
+      });
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  function acceptForcedAlert() {
+    if (!forcedAlertProposal) return;
+    setAcceptedForcedAlerts((prev) => [forcedAlertProposal, ...prev]);
+    setForcedAlertProposal(null);
+  }
+
+  function denyForcedAlert() {
+    setForcedAlertProposal(null);
+  }
+
   return (
     <main className="relative min-h-screen px-6 py-5">
       <div className="subtle-noise pointer-events-none absolute inset-0" />
@@ -87,6 +126,9 @@ export function Dashboard() {
             health={greenhouseHealth}
             logEntries={healthLog}
             activeAlert={activeHeaderAlert}
+            forcedAlertProposal={forcedAlertProposal}
+            onAcceptForcedAlert={acceptForcedAlert}
+            onDenyForcedAlert={denyForcedAlert}
           />
         </div>
 

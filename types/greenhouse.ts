@@ -45,7 +45,7 @@ export interface ActionItem {
 
 export type AlertCategory =
   | "Harvest"
-  | "Dust storm"
+  | "Sand storm"
   | "Disease"
   | "Water"
   | "Nutrient depletion"

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, ChevronDown, CircleUserRound } from "lucide-react";
-import { ProgressBar } from "@/components/shared/ProgressBar";
 import { CrewAvatar } from "@/components/shared/CrewAvatar";
 import type { AlertItem, AstronautProfile, GreenhouseHealth, HealthLogEntry } from "@/types/greenhouse";
 
@@ -11,6 +10,9 @@ interface HeaderProps {
   health: GreenhouseHealth;
   logEntries: HealthLogEntry[];
   activeAlert?: AlertItem | null;
+  forcedAlertProposal?: AlertItem | null;
+  onAcceptForcedAlert?: () => void;
+  onDenyForcedAlert?: () => void;
 }
 
 function alertBadgeClasses(urgency: AlertItem["urgency"]): string {
@@ -23,10 +25,21 @@ function alertBadgeClasses(urgency: AlertItem["urgency"]): string {
   return "border-emerald-200 bg-emerald-50 text-emerald-700";
 }
 
-export function Header({ profile, health, logEntries, activeAlert }: HeaderProps) {
+export function Header({
+  profile,
+  health,
+  logEntries,
+  activeAlert,
+  forcedAlertProposal,
+  onAcceptForcedAlert,
+  onDenyForcedAlert,
+}: HeaderProps) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [logOpen, setLogOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement | null>(null);
+  const gaugeRadius = 24;
+  const gaugeCircumference = 2 * Math.PI * gaugeRadius;
+  const gaugeOffset = gaugeCircumference * (1 - Math.max(0, Math.min(100, health.score)) / 100);
 
   useEffect(() => {
     function onPointerDown(event: MouseEvent) {
@@ -56,7 +69,41 @@ export function Header({ profile, health, logEntries, activeAlert }: HeaderProps
         activeAlert ? "ring-2 ring-amber-300/90 shadow-[0_0_0_10px_rgba(252,211,77,0.22)]" : ""
       }`}
     >
-      {activeAlert ? (
+      {forcedAlertProposal ? (
+        <div className="flex min-h-[166px] items-center justify-between gap-4 rounded-2xl border border-red-300/80 bg-red-50/90 px-5 py-4">
+          <div className="flex min-w-0 items-start gap-4">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-red-100 text-red-700">
+              <AlertTriangle className="h-8 w-8" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-red-700">Alert proposal</p>
+              <div className="mt-1 flex flex-wrap items-center gap-2">
+                <span className="inline-flex rounded-full border border-red-200 bg-red-100 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-red-700">
+                  {forcedAlertProposal.category}
+                </span>
+                <span className="font-mono text-xs text-red-600">{forcedAlertProposal.timestamp}</span>
+              </div>
+              <p className="mt-2 text-base font-medium text-red-800">{forcedAlertProposal.text}</p>
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-2 self-start">
+            <button
+              type="button"
+              onClick={onDenyForcedAlert}
+              className="rounded-md border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-700 transition-colors hover:bg-red-50"
+            >
+              Deny
+            </button>
+            <button
+              type="button"
+              onClick={onAcceptForcedAlert}
+              className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-red-700"
+            >
+              Accept
+            </button>
+          </div>
+        </div>
+      ) : activeAlert ? (
         <div className="flex min-h-[166px] items-center gap-4 rounded-2xl border border-amber-300/80 bg-amber-50/85 px-5 py-4 animate-pulse">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
             <AlertTriangle className="h-8 w-8" />
@@ -78,10 +125,32 @@ export function Header({ profile, health, logEntries, activeAlert }: HeaderProps
         </div>
       ) : (
         <>
-          <div className="mb-3 flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-4xl font-semibold tracking-tight text-[#223929]">Welcome back, NELAN</h1>
-              <p className="text-lg text-[#63816f]">Autonomous greenhouse guidance is active.</p>
+          <div className="mb-3 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="relative h-[60px] w-[60px] shrink-0">
+                <svg className="h-[60px] w-[60px] -rotate-90" viewBox="0 0 60 60" aria-hidden="true">
+                  <circle cx="30" cy="30" r={gaugeRadius} fill="none" stroke="#dbe8dc" strokeWidth="6" />
+                  <circle
+                    cx="30"
+                    cy="30"
+                    r={gaugeRadius}
+                    fill="none"
+                    stroke="#15a34a"
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                    strokeDasharray={gaugeCircumference}
+                    strokeDashoffset={gaugeOffset}
+                    className="transition-all duration-500"
+                  />
+                </svg>
+                <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-[#1f4e34]">
+                  {health.score}%
+                </span>
+              </div>
+              <div>
+                <h1 className="text-4xl font-semibold tracking-tight text-[#223929]">Welcome back, NELAN</h1>
+                <p className="text-lg text-[#63816f]">Autonomous greenhouse guidance is active.</p>
+              </div>
             </div>
 
             <div className="relative" ref={profileRef}>
@@ -112,21 +181,16 @@ export function Header({ profile, health, logEntries, activeAlert }: HeaderProps
             </div>
           </div>
 
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <span className="min-w-fit text-lg font-medium text-[#32503e]">Greenhouse Health</span>
-              <ProgressBar
-                value={health.score}
-                gradientClass="bg-gradient-to-r from-[#3dbd66] to-[#009f3c]"
-                className="h-3.5"
-              />
-              <span className="font-mono text-xl font-semibold text-[#1f4e34]">{health.score}%</span>
-              <span className="rounded-full bg-emerald-100 px-3 py-1.5 text-sm font-semibold text-[#0f7a32]">
-                {health.label} ✓
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-emerald-100 px-3 py-1.5 text-sm font-semibold text-[#0f7a32]">
+                <span>{health.label}</span>
+                <span aria-hidden="true">✓</span>
               </span>
+              <span className="text-sm text-[#6b8f6b]">{health.trend}</span>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center">
               <button
                 onClick={() => setLogOpen((prev) => !prev)}
                 className="inline-flex items-center gap-1 text-sm text-[#476554] underline-offset-2 hover:text-[#36398e] hover:underline"
@@ -134,7 +198,6 @@ export function Header({ profile, health, logEntries, activeAlert }: HeaderProps
                 Health log
                 <ChevronDown className={`h-4 w-4 transition-transform ${logOpen ? "rotate-180" : ""}`} />
               </button>
-              <span className="text-sm text-[#6b8f6b]">{health.trend}</span>
             </div>
 
             {logOpen ? (
