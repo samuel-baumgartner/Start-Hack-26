@@ -2,21 +2,18 @@
 
 import { useState } from "react";
 import { actionQueue, statusBars } from "@/data/actions";
-import { greenhouseHealth, healthLog, astronautProfile, zones } from "@/data/zones";
+import { greenhouseHealth, healthLog, astronautProfile } from "@/data/zones";
 import { marsWeather } from "@/data/weather";
-import { useZoneNavigation } from "@/hooks/useZoneNavigation";
 import { Header } from "@/components/layout/Header";
 import { Sidebar, type SidebarTab } from "@/components/layout/Sidebar";
 import { StatusBars } from "./StatusBars";
 import { ActionQueue } from "./ActionQueue";
-import { ZoneMap } from "./ZoneMap";
-import { ZoneDetail } from "./ZoneDetail";
 import { AIChat } from "@/components/chat/AIChat";
 import { MarsWeather } from "@/components/weather/MarsWeather";
+import { HexZoneMap } from "@/components/hexzone/HexZoneMap";
 
 export function Dashboard() {
   const [activeTab, setActiveTab] = useState<SidebarTab>("chat");
-  const { selectedZone, selectZone, clearZone } = useZoneNavigation(zones);
 
   return (
     <main className="relative min-h-screen px-6 py-5">
@@ -26,11 +23,7 @@ export function Dashboard() {
 
         <section className="grid min-h-[760px] grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
           <div className="grid min-h-[760px] grid-rows-[minmax(0,1fr)_auto] gap-4">
-            {selectedZone ? (
-              <ZoneDetail zone={selectedZone} onBack={clearZone} />
-            ) : (
-              <ZoneMap zones={zones} onSelectZone={selectZone} />
-            )}
+            <HexZoneMap />
 
             <div className="grid self-end gap-3 lg:grid-cols-[minmax(0,1fr)_360px]">
               <StatusBars bars={statusBars} />
