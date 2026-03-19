@@ -3,6 +3,44 @@
 from __future__ import annotations
 
 import asyncio
+import os
+import re
+from pathlib import Path
+
+
+def _load_env() -> None:
+    """Load backend/.env (export KEY=value format) into os.environ."""
+    env_path = Path(__file__).resolve().parent / ".env"
+    if not env_path.exists():
+        return
+    for line in env_path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[7:].strip()
+        m = re.match(r'^([A-Za-z_][A-Za-z0-9_]*)=(.*)$', line)
+        if m:
+            key, val = m.group(1), m.group(2).strip()
+            if val.startswith('"') and val.endswith('"'):
+                val = val[1:-1].replace('\\"', '"')
+            elif val.startswith("'") and val.endswith("'"):
+                val = val[1:-1].replace("\\'", "'")
+            os.environ.setdefault(key, val)
+
+
+_load_env()
+# #region agent log
+def _dbg(msg: str, data: dict | None = None, hyp: str = "") -> None:
+    import json
+    try:
+        with open(Path(__file__).resolve().parent.parent / ".cursor" / "debug.log", "a") as f:
+            f.write(json.dumps({"location": "main.py", "message": msg, "data": data or {}, "hypothesisId": hyp, "timestamp": __import__("time").time() * 1000}) + "\n")
+    except Exception:
+        pass
+_dbg("env_loaded", {"aws_key_set": bool(os.environ.get("AWS_ACCESS_KEY_ID")), "region": os.environ.get("AWS_DEFAULT_REGION", "?")}, "H1")
+# #endregion
+
 import json
 import logging
 import sys
@@ -25,6 +63,9 @@ logger = logging.getLogger(__name__)
 # Global simulation engine
 engine = SimulationEngine()
 
+# Concurrency lock for engine access
+engine_lock = asyncio.Lock()
+
 # Auto-tick state
 auto_tick_task: asyncio.Task | None = None
 auto_tick_interval: float = 2.0  # seconds between ticks
@@ -34,50 +75,61 @@ auto_tick_enabled: bool = False
 sse_queues: list[asyncio.Queue] = []
 
 
+def _build_state_snapshot() -> dict:
+    """Build a state snapshot dict from current engine state."""
+    return {
+        "sol": engine.state.environment.sol,
+        "tick": engine.state.environment.tick,
+        "total_ticks": engine.state.environment.total_ticks,
+        "is_daytime": engine.state.environment.is_daytime,
+        "dust_storm_active": engine.state.environment.dust_storm_active,
+        "water_reservoir_l": round(engine.state.resources.water_reservoir_l, 1),
+        "battery_percent": round(
+            engine.state.resources.battery_charge_kwh
+            / engine.state.resources.battery_capacity_kwh
+            * 100,
+            1,
+        ),
+        "power_generation_kw": round(engine.state.resources.power_generation_kw, 2),
+        "power_consumption_kw": round(engine.state.resources.power_consumption_kw, 2),
+    }
+
+
 async def auto_tick_loop():
     """Background loop: tick simulation every N seconds."""
     global auto_tick_enabled
     while auto_tick_enabled:
-        engine.tick(1)
+        await asyncio.sleep(auto_tick_interval)
+        if not auto_tick_enabled:
+            break
 
-        # Broadcast to SSE subscribers
-        state_snapshot = {
-            "sol": engine.state.environment.sol,
-            "tick": engine.state.environment.tick,
-            "total_ticks": engine.state.environment.total_ticks,
-            "is_daytime": engine.state.environment.is_daytime,
-            "dust_storm_active": engine.state.environment.dust_storm_active,
-            "water_reservoir_l": round(engine.state.resources.water_reservoir_l, 1),
-            "battery_percent": round(
-                engine.state.resources.battery_charge_kwh
-                / engine.state.resources.battery_capacity_kwh
-                * 100,
-                1,
-            ),
-            "power_generation_kw": round(engine.state.resources.power_generation_kw, 2),
-            "power_consumption_kw": round(engine.state.resources.power_consumption_kw, 2),
-        }
+        async with engine_lock:
+            engine.tick(1)
+            # Broadcast to SSE subscribers
+            state_snapshot = _build_state_snapshot()
 
-        for q in sse_queues:
+        for q in list(sse_queues):
             try:
                 q.put_nowait(state_snapshot)
             except asyncio.QueueFull:
                 pass  # drop if subscriber is too slow
-
-        await asyncio.sleep(auto_tick_interval)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """App startup/shutdown."""
     # Wire up engine to all route modules
-    from api.simulation_routes import set_engine as set_sim_engine
-    from api.event_routes import set_engine as set_event_engine
-    from api.agent_routes import set_engine as set_agent_engine
+    from api.simulation_routes import set_engine as set_sim_engine, set_auto_tick_stopper, set_lock as set_sim_lock
+    from api.event_routes import set_engine as set_event_engine, set_lock as set_event_lock
+    from api.agent_routes import set_engine as set_agent_engine, set_lock as set_agent_lock
 
     set_sim_engine(engine)
     set_event_engine(engine)
     set_agent_engine(engine)
+    set_auto_tick_stopper(stop_auto_tick)
+    set_sim_lock(engine_lock)
+    set_event_lock(engine_lock)
+    set_agent_lock(engine_lock)
 
     # Try to create agent (needs AWS creds)
     mcp_client = None
@@ -87,13 +139,16 @@ async def lifespan(app: FastAPI):
         from api.agent_routes import set_agent
 
         set_tools_engine(engine)
+        _dbg("before_create_agent", {"engine_set": engine is not None}, "H2")
         agent, mcp_client = await asyncio.to_thread(create_agent)
+        _dbg("after_create_agent", {"agent_ok": agent is not None, "mcp_ok": mcp_client is not None}, "H2")
         if agent:
             set_agent(agent)
             logger.info("AI agent initialized successfully")
         else:
             logger.warning("AI agent not available (check AWS credentials)")
     except Exception as e:
+        _dbg("agent_init_error", {"error": str(e), "type": type(e).__name__}, "H3")
         logger.warning(f"Could not initialize agent: {e}")
 
     logger.info("Mars Greenhouse Simulation ready!")
@@ -122,7 +177,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -176,13 +231,17 @@ async def sim_stream():
 
     async def event_generator() -> AsyncGenerator[str, None]:
         try:
+            # Send initial state snapshot immediately on connect
+            initial = _build_state_snapshot()
+            yield f"data: {json.dumps(initial)}\n\n"
             while True:
                 data = await queue.get()
                 yield f"data: {json.dumps(data)}\n\n"
         except asyncio.CancelledError:
             pass
         finally:
-            sse_queues.remove(queue)
+            if queue in sse_queues:
+                sse_queues.remove(queue)
 
     return StreamingResponse(
         event_generator(),

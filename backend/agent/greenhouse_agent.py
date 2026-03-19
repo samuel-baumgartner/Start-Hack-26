@@ -8,6 +8,7 @@ from typing import Callable
 
 from agent.prompts import SYSTEM_PROMPT
 from agent.tools import (
+    adjust_humidity,
     adjust_irrigation,
     adjust_lighting,
     adjust_temperature,
@@ -18,7 +19,10 @@ from agent.tools import (
     plant_crop,
     quarantine_zone,
     read_sensors,
+    remove_infected_crops,
     set_zone_priority,
+    treat_disease_h2o2,
+    treat_disease_uvc,
 )
 
 logger = logging.getLogger(__name__)
@@ -36,12 +40,27 @@ AGENT_TOOLS = [
     plant_crop,
     deploy_microgreens,
     get_nutrition_status,
+    treat_disease_uvc,
+    treat_disease_h2o2,
+    adjust_humidity,
+    remove_infected_crops,
 ]
 
 MCP_ENDPOINT = os.environ.get(
     "MCP_ENDPOINT",
     "https://kb-start-hack-gateway-buyjtibfpg.gateway.bedrock-agentcore.us-east-2.amazonaws.com/mcp",
 )
+
+
+def _dbg(msg: str, data: dict | None = None, hyp: str = "") -> None:
+    try:
+        import json
+        from pathlib import Path
+        log_path = Path(__file__).resolve().parent.parent.parent / ".cursor" / "debug.log"
+        with open(log_path, "a") as f:
+            f.write(json.dumps({"location": "greenhouse_agent.py", "message": msg, "data": data or {}, "hypothesisId": hyp, "timestamp": __import__("time").time() * 1000}) + "\n")
+    except Exception:
+        pass
 
 
 def create_agent() -> tuple[Callable | None, object | None]:
@@ -52,6 +71,7 @@ def create_agent() -> tuple[Callable | None, object | None]:
     """
     # Check for AWS credentials
     if not os.environ.get("AWS_ACCESS_KEY_ID"):
+        _dbg("creds_missing", {"reason": "AWS_ACCESS_KEY_ID not set"}, "H1")
         logger.warning("AWS credentials not set — agent will not be available")
         return None, None
 
@@ -70,6 +90,7 @@ def create_agent() -> tuple[Callable | None, object | None]:
         tools = list(AGENT_TOOLS)
         if mcp_client:
             tools.append(mcp_client)
+        _dbg("tools_configured", {"tool_count": len(tools), "has_mcp": mcp_client is not None}, "H2")
 
         # Add AgentCore Memory tools for persistent episodic memory
         memory_provider = _create_memory_provider()
@@ -82,13 +103,16 @@ def create_agent() -> tuple[Callable | None, object | None]:
             tools=tools,
         )
 
+        _dbg("agent_created", {"tools_count": len(tools)}, "H2")
         logger.info("Strands agent created successfully")
         return agent, mcp_client
 
-    except ImportError:
+    except ImportError as ie:
+        _dbg("agent_import_error", {"error": str(ie)}, "H3")
         logger.warning("strands-agents not installed — trying raw Bedrock fallback")
         return _create_fallback_agent(), None
     except Exception as e:
+        _dbg("agent_create_error", {"error": str(e), "type": type(e).__name__}, "H3")
         logger.error(f"Failed to create Strands agent: {e}")
         return _create_fallback_agent(), None
 

@@ -2,21 +2,28 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from simulation.engine import SimulationEngine
 
 router = APIRouter(prefix="/events", tags=["events"])
 
 engine: SimulationEngine | None = None
+_lock: asyncio.Lock | None = None
 
 
 def set_engine(e: SimulationEngine) -> None:
     global engine
     engine = e
+
+
+def set_lock(lock: asyncio.Lock) -> None:
+    global _lock
+    _lock = lock
 
 
 def _engine() -> SimulationEngine:
@@ -32,7 +39,7 @@ class DustStormRequest(BaseModel):
 
 
 class DiseaseRequest(BaseModel):
-    zone_id: str = "C"
+    zone_id: str = Field(default="C", min_length=1)
     disease_type: str = "pythium_root_rot"
 
 
@@ -41,40 +48,62 @@ class PowerFailureRequest(BaseModel):
 
 
 class SensorFailureRequest(BaseModel):
-    zone_id: str = "A"
+    zone_id: str = Field(default="A", min_length=1)
     sensor_name: str = "temperature"
     duration_ticks: int = 10
 
 
 class CropFailureRequest(BaseModel):
-    zone_id: str = "C"
+    zone_id: str = Field(default="C", min_length=1)
     crop_name: Optional[str] = None  # None = all crops in zone
 
 
+def _check_event_result(result: dict) -> dict:
+    """Raise HTTP 400 if event returned an app-level error."""
+    if result.get("status") == "error":
+        raise HTTPException(status_code=400, detail=result["message"])
+    return result
+
+
 @router.post("/dust-storm")
-def trigger_dust_storm(req: DustStormRequest):
+async def trigger_dust_storm(req: DustStormRequest):
     params = req.model_dump(exclude_none=True)
-    return _engine().trigger_event("dust_storm", params)
+    if _lock:
+        async with _lock:
+            return _check_event_result(_engine().trigger_event("dust_storm", params))
+    return _check_event_result(_engine().trigger_event("dust_storm", params))
 
 
 @router.post("/disease")
-def trigger_disease(req: DiseaseRequest):
-    return _engine().trigger_event("disease", req.model_dump())
+async def trigger_disease(req: DiseaseRequest):
+    if _lock:
+        async with _lock:
+            return _check_event_result(_engine().trigger_event("disease", req.model_dump()))
+    return _check_event_result(_engine().trigger_event("disease", req.model_dump()))
 
 
 @router.post("/power-failure")
-def trigger_power_failure(req: PowerFailureRequest):
-    return _engine().trigger_event("power_failure", req.model_dump())
+async def trigger_power_failure(req: PowerFailureRequest):
+    if _lock:
+        async with _lock:
+            return _check_event_result(_engine().trigger_event("power_failure", req.model_dump()))
+    return _check_event_result(_engine().trigger_event("power_failure", req.model_dump()))
 
 
 @router.post("/sensor-failure")
-def trigger_sensor_failure(req: SensorFailureRequest):
-    return _engine().trigger_event("sensor_failure", req.model_dump())
+async def trigger_sensor_failure(req: SensorFailureRequest):
+    if _lock:
+        async with _lock:
+            return _check_event_result(_engine().trigger_event("sensor_failure", req.model_dump()))
+    return _check_event_result(_engine().trigger_event("sensor_failure", req.model_dump()))
 
 
 @router.post("/crop-failure")
-def trigger_crop_failure(req: CropFailureRequest):
-    return _engine().trigger_event("crop_failure", req.model_dump(exclude_none=True))
+async def trigger_crop_failure(req: CropFailureRequest):
+    if _lock:
+        async with _lock:
+            return _check_event_result(_engine().trigger_event("crop_failure", req.model_dump(exclude_none=True)))
+    return _check_event_result(_engine().trigger_event("crop_failure", req.model_dump(exclude_none=True)))
 
 
 @router.get("/log")

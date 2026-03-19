@@ -120,7 +120,7 @@ export interface ChatMessage {
 }
 
 export interface AutoTickStatus {
-  running: boolean;
+  enabled: boolean;
   interval: number;
 }
 

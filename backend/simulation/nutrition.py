@@ -10,6 +10,7 @@ from scipy.optimize import linprog
 from config import (
     CREW_SIZE,
     DAILY_CALCIUM_MG,
+    DAILY_CALORIES_KCAL,
     DAILY_FAT_G,
     DAILY_FIBER_G,
     DAILY_FOLATE_UG,
@@ -28,6 +29,7 @@ from simulation.state import GreenhouseState
 
 # Daily requirements for the whole crew
 DAILY_REQUIREMENTS = {
+    "calories_kcal": DAILY_CALORIES_KCAL * CREW_SIZE,
     "vitamin_c_mg": DAILY_VITAMIN_C_MG * CREW_SIZE,
     "vitamin_k_ug": DAILY_VITAMIN_K_UG * CREW_SIZE,
     "folate_ug": DAILY_FOLATE_UG * CREW_SIZE,

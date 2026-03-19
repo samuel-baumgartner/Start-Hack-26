@@ -23,6 +23,16 @@ function isNutrientInfo(v: unknown): v is NutrientInfo {
   return typeof v === "object" && v !== null && "coverage_percent" in v;
 }
 
+function cleanLabel(key: string): string {
+  return key
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .replace(/ Mg$/, "")       // "Vitamin C Mg" → "Vitamin C"
+    .replace(/ Ug$/, "")       // "Vitamin D Ug" → "Vitamin D"
+    .replace(/ G$/, "")        // "Protein G" → "Protein"
+    .replace(/ Kcal$/, "");    // "Calories Kcal" → "Calories"
+}
+
 export function AstronautCard({ crewIndex, nutrition }: AstronautCardProps) {
   const [expanded, setExpanded] = useState(false);
   const crew = CREW[crewIndex];
@@ -33,13 +43,13 @@ export function AstronautCard({ crewIndex, nutrition }: AstronautCardProps) {
     : [];
 
   const worstCoverage = nutrients.reduce(
-    (min, [, v]) => Math.min(min, (v as NutrientInfo).coverage_percent / 4),
+    (min, [, v]) => Math.min(min, (v as NutrientInfo).coverage_percent),
     Infinity,
   );
   const normalizedWorst = isFinite(worstCoverage) ? worstCoverage : 0;
 
   const status: "nominal" | "warning" | "critical" =
-    normalizedWorst >= 60 ? "nominal" : normalizedWorst >= 30 ? "warning" : "critical";
+    normalizedWorst >= 50 ? "nominal" : normalizedWorst >= 25 ? "warning" : "critical";
 
   const statusDotColor = {
     nominal: "bg-mars-green",
@@ -87,21 +97,24 @@ export function AstronautCard({ crewIndex, nutrition }: AstronautCardProps) {
             <div className="px-2.5 pb-2.5 space-y-1.5">
               {nutrients.map(([key, val]) => {
                 const info = val as NutrientInfo;
-                const perPerson = info.coverage_percent / 4;
-                const label = key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+                const coverage = info.coverage_percent;
+                const label = cleanLabel(key);
                 return (
                   <div key={key}>
                     <div className="flex items-center justify-between mb-0.5">
                       <span className="text-[10px] text-muted-foreground truncate">{label}</span>
                       <span className="text-[10px] font-mono text-muted-foreground">
-                        {perPerson.toFixed(0)}%
+                        {coverage.toFixed(0)}%
+                        <span className="ml-1 opacity-60">
+                          ({info.daily_production.toFixed(1)}/{info.daily_requirement.toFixed(1)})
+                        </span>
                       </span>
                     </div>
                     <GlowBar
-                      percent={perPerson}
+                      percent={coverage}
                       color="green"
                       height="h-1"
-                      thresholds={{ warning: 60, critical: 30 }}
+                      thresholds={{ warning: 50, critical: 25 }}
                     />
                   </div>
                 );

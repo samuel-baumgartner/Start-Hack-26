@@ -21,6 +21,17 @@ from config import (
 )
 
 
+class DiseaseState(BaseModel):
+    disease_type: str  # "pythium_root_rot" | "powdery_mildew" | "bacterial_wilt"
+    zone_id: str
+    stage: str = "incubating"  # "incubating" | "symptomatic" | "critical"
+    severity: float = 0.0  # 0–100
+    ticks_in_stage: int = 0
+    water_contamination: float = 0.0  # 0–1, pathogen load in shared water
+    treated_uvc: bool = False
+    treated_h2o2: bool = False
+
+
 class GrowthStage(str, Enum):
     SEEDLING = "seedling"
     VEGETATIVE = "vegetative"
@@ -53,6 +64,8 @@ class Zone(BaseModel):
     temperature_setpoint: float = GREENHOUSE_TEMP_TARGET
     photoperiod_hours: float = GREENHOUSE_PHOTOPERIOD_HOURS
     irrigation_rate_l_per_hour: float = 0.5
+    humidity_setpoint: float = GREENHOUSE_HUMIDITY_TARGET
+    substrate: str = "hydro"  # "soil" or "hydro"
     lighting_on: bool = True
     is_quarantined: bool = False
     priority: str = "normal"  # normal, high, low, hibernate, sacrifice
@@ -104,23 +117,24 @@ class GreenhouseState(BaseModel):
     environment: EnvironmentState = Field(default_factory=EnvironmentState)
     event_log: list[EventLogEntry] = Field(default_factory=list)
     agent_decisions: list[dict] = Field(default_factory=list)
+    diseases: list[DiseaseState] = Field(default_factory=list)
+    crew_health: float = 100.0  # 0-100, mission-level crew health
 
 
 def create_default_state() -> GreenhouseState:
-    """Create the initial greenhouse state with 6 zones and default crops."""
+    """Create the initial greenhouse state with 4 variable-size zones (NASA ALS ratios)."""
+    # (zone_id, area_m2, substrate, crop_names)
     zone_configs = [
-        ("A", ["lettuce", "kale"]),
-        ("B", ["spinach", "basil"]),
-        ("C", ["tomato"]),
-        ("D", ["pepper", "radish"]),
-        ("E", ["soybean"]),
-        ("F", ["microgreens"]),
+        ("A", 80.0,  "soil",  ["dwarf_wheat", "sweet_potato"]),     # 40% — Caloric base
+        ("B", 50.0,  "hydro", ["soybean"]),                          # 25% — Protein & fats
+        ("C", 45.0,  "hydro", ["kale", "spinach", "cherry_tomato"]), # 22.5% — Micronutrients
+        ("D", 25.0,  "hydro", ["radish", "microgreens"]),            # 12.5% — Rapid response
     ]
 
     from simulation.crops import CROP_DATABASE
 
     zones = []
-    for zone_id, crop_names in zone_configs:
+    for zone_id, area, substrate, crop_names in zone_configs:
         crops = []
         for name in crop_names:
             db_entry = CROP_DATABASE.get(name, {})
@@ -134,6 +148,15 @@ def create_default_state() -> GreenhouseState:
                     ),
                 )
             )
-        zones.append(Zone(zone_id=zone_id, crops=crops))
+        zone = Zone(
+            zone_id=zone_id,
+            area_m2=area,
+            substrate=substrate,
+            crops=crops,
+        )
+        # Zone A runs warmer for sweet potato
+        if zone_id == "A":
+            zone.temperature_setpoint = 27.0
+        zones.append(zone)
 
     return GreenhouseState(zones=zones)
