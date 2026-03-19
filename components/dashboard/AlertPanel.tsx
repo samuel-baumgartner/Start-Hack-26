@@ -26,14 +26,20 @@ function categoryClasses(category: AlertItem["category"]) {
   return palette[category];
 }
 
-export function AlertPanel() {
+interface AlertPanelProps {
+  topAlerts?: AlertItem[];
+}
+
+export function AlertPanel({ topAlerts: topAlertsProp }: AlertPanelProps) {
   const actionQueueTexts = new Set(actionQueue.map((item) => item.text.trim()));
   const nonDuplicateAlerts = alerts.filter((alert) => !actionQueueTexts.has(alert.text.trim()));
   const candidateAlerts = nonDuplicateAlerts.length > 0 ? nonDuplicateAlerts : alerts;
 
-  const topAlerts = [...candidateAlerts]
-    .sort((a, b) => priorityRank(a.urgency) - priorityRank(b.urgency))
-    .slice(0, 2);
+  const topAlerts =
+    topAlertsProp ??
+    [...candidateAlerts]
+      .sort((a, b) => priorityRank(a.urgency) - priorityRank(b.urgency))
+      .slice(0, 2);
 
   return (
     <section className="rounded-2xl border border-[#d7e6d8] bg-white/75 p-3">
