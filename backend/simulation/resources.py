@@ -7,12 +7,15 @@ import math
 from config import (
     BATTERY_CAPACITY_KWH,
     MARS_SOLAR_IRRADIANCE_MAX,
+    NUCLEAR_BASELINE_KW,
     POWER_HEATING_KW,
+    POWER_HEATING_STANDBY_KW,
     POWER_LIFE_SUPPORT_KW,
     POWER_LIGHTING_PER_ZONE_KW,
     POWER_MONITORING_KW,
     POWER_PUMPS_KW,
     SIMULATION_TICK_HOURS,
+    SOLAR_PANEL_AREA_M2,
 )
 from simulation.state import GreenhouseState, Zone
 
@@ -46,9 +49,9 @@ def update_water(state: GreenhouseState, dt_hours: float) -> None:
 def compute_solar_power(solar_irradiance: float, panel_efficiency: float) -> float:
     """Solar power generation based on current irradiance.
 
-    Assumes ~50 m² of solar panels with ~20% efficiency.
+    Uses SOLAR_PANEL_AREA_M2 config with ~20% base efficiency.
     """
-    panel_area = 50.0  # m²
+    panel_area = SOLAR_PANEL_AREA_M2
     panel_eff = 0.20 * panel_efficiency  # base efficiency * degradation
     raw_power = solar_irradiance * panel_area * panel_eff / 1000.0  # kW
     return raw_power
@@ -59,7 +62,7 @@ def compute_power_consumption(zones: list[Zone], heating_needed: bool) -> float:
     lighting = sum(
         POWER_LIGHTING_PER_ZONE_KW for z in zones if z.lighting_on and not z.is_quarantined
     )
-    heating = POWER_HEATING_KW if heating_needed else 0.5  # minimal standby
+    heating = POWER_HEATING_KW if heating_needed else POWER_HEATING_STANDBY_KW
     pumps = POWER_PUMPS_KW
     monitoring = POWER_MONITORING_KW
     life_support = POWER_LIFE_SUPPORT_KW
@@ -69,13 +72,16 @@ def compute_power_consumption(zones: list[Zone], heating_needed: bool) -> float:
 
 def update_power(state: GreenhouseState, solar_irradiance: float, dt_hours: float) -> None:
     """Update power generation, consumption, and battery state."""
-    generation = compute_solar_power(
+    solar_generation = compute_solar_power(
         solar_irradiance, state.resources.solar_panel_efficiency
     )
 
-    # Apply power failure reduction
+    # Apply power failure reduction (only affects solar, not nuclear)
     if state.environment.power_failure_active:
-        generation *= (1.0 - state.environment.power_failure_reduction)
+        solar_generation *= (1.0 - state.environment.power_failure_reduction)
+
+    # Nuclear baseline is always available (separate reactor)
+    generation = solar_generation + NUCLEAR_BASELINE_KW
 
     heating_needed = any(z.temperature < 20.0 for z in state.zones)
     consumption = compute_power_consumption(state.zones, heating_needed)
