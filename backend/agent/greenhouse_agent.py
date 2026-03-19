@@ -138,7 +138,7 @@ def _create_memory_provider():
                     region_name=region,
                 )
                 response = control_client.create_memory(
-                    name="flora-greenhouse-memory",
+                    name="floraGreenhouseMemory",
                     eventExpiryDuration=30,
                 )
                 memory_id = response["memory"]["id"]
