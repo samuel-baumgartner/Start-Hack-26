@@ -30,18 +30,18 @@ function iconFor(id: MetricBar["id"]) {
 
 export function StatusBars({ bars }: StatusBarsProps) {
   return (
-    <section className="panel-card rounded-3xl p-6">
-      <h2 className="mb-5 text-xl font-semibold uppercase tracking-wide text-[#496856]">Mission Status</h2>
-      <div className="space-y-5">
+    <section className="panel-card rounded-3xl p-4">
+      <h2 className="mb-2 text-lg font-semibold uppercase tracking-wide text-[#496856]">Mission Status</h2>
+      <div className="space-y-2.5">
         {bars.map((bar) => (
-          <div key={bar.id} className="grid grid-cols-[220px_minmax(0,1fr)_200px] items-center gap-4">
-            <div className="flex items-center gap-2 text-lg text-[#264336]">
+          <div key={bar.id} className="grid grid-cols-[190px_minmax(0,1fr)_170px] items-center gap-2">
+            <div className="flex items-center gap-1.5 text-sm text-[#264336]">
               {iconFor(bar.id)}
               <span>{bar.label}</span>
             </div>
-            <ProgressBar value={bar.value} gradientClass={barGradient(bar)} className="h-3.5" />
+            <ProgressBar value={bar.value} gradientClass={barGradient(bar)} className="h-2.5" />
             <div
-              className={`text-right text-lg ${
+              className={`text-right text-sm ${
                 bar.statusLevel === "critical"
                   ? "text-[#b91c1c]"
                   : bar.statusLevel === "warning"

@@ -25,14 +25,14 @@ export function Dashboard() {
         <Header profile={astronautProfile} health={greenhouseHealth} logEntries={healthLog} />
 
         <section className="grid min-h-[760px] grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="grid grid-rows-[auto_auto_1fr] gap-4">
+          <div className="grid min-h-[760px] grid-rows-[minmax(0,1fr)_auto] gap-4">
             {selectedZone ? (
               <ZoneDetail zone={selectedZone} onBack={clearZone} />
             ) : (
               <ZoneMap zones={zones} onSelectZone={selectZone} />
             )}
 
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_420px]">
+            <div className="grid self-end gap-3 lg:grid-cols-[minmax(0,1fr)_360px]">
               <StatusBars bars={statusBars} />
               <ActionQueue actions={actionQueue} />
             </div>
