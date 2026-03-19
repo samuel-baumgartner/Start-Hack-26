@@ -23,12 +23,12 @@ export function ZoneMap({ zones, onSelectZone }: ZoneMapProps) {
   );
 
   return (
-    <section className="panel-card rounded-3xl p-6">
+    <section className="panel-card flex h-full min-h-[520px] flex-col rounded-3xl p-6">
       <h2 className="mb-3 text-xl font-semibold uppercase tracking-wide text-[#496856]">Zone Map</h2>
       <p className="mb-4 text-base text-[#607f6b]">Click any zone to inspect crops and sensor details.</p>
 
-      <div className="relative rounded-2xl border border-[#dce9de] bg-gradient-to-b from-[#f5fbf6] to-white p-4">
-        <svg viewBox="0 0 520 360" className="h-[380px] w-full">
+      <div className="relative flex-1 rounded-2xl border border-[#dce9de] bg-gradient-to-b from-[#f5fbf6] to-white p-4">
+        <svg viewBox="0 0 520 360" className="h-[430px] w-full">
           {layeredZones.map((zone, index) => {
             const yOffset = 40 + index * 62;
             const hoveredNow = hovered === zone.id;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { Send } from "lucide-react";
 import { initialChatMessages, rotatingAiReplies } from "@/data/chatMessages";
 import type { ChatMessage } from "@/types/greenhouse";
@@ -15,13 +15,9 @@ export function AIChat() {
   const [input, setInput] = useState("");
   const [replyIndex, setReplyIndex] = useState(0);
   const [typing, setTyping] = useState(false);
-  const listRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages, typing]);
 
   const canSend = useMemo(() => input.trim().length > 0 && !typing, [input, typing]);
+  const visibleMessages = useMemo(() => messages.slice(-4), [messages]);
 
   function sendMessage() {
     const trimmed = input.trim();
@@ -52,8 +48,8 @@ export function AIChat() {
 
   return (
     <section className="flex h-full min-h-0 flex-col rounded-2xl border border-[#d7e6d8] bg-white/70 p-4">
-      <div ref={listRef} className="custom-scrollbar mb-3 min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
-        {messages.map((msg) => (
+      <div className="mb-3 min-h-0 flex-1 space-y-2.5 overflow-hidden pr-0.5">
+        {visibleMessages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.role === "ai" ? "justify-start" : "justify-end"}`}>
             <div
               className={`max-w-[92%] rounded-2xl px-4 py-3 text-base ${
@@ -77,12 +73,12 @@ export function AIChat() {
         ))}
         {typing ? (
           <div className="flex justify-start">
-            <div className="rounded-2xl bg-[#eef0ff] px-4 py-3 text-base text-[#28308a]">AI is composing...</div>
+            <div className="rounded-2xl bg-[#eef0ff] px-4 py-2 text-sm text-[#28308a]">AI is composing...</div>
           </div>
         ) : null}
       </div>
 
-      <div className="flex items-center gap-2 rounded-2xl border border-[#d7e6d8] bg-white p-3">
+      <div className="flex items-center gap-2 rounded-2xl border border-[#d7e6d8] bg-white p-2.5">
         <input
           value={input}
           onChange={(event) => setInput(event.target.value)}
@@ -92,15 +88,15 @@ export function AIChat() {
             }
           }}
           placeholder="Ask NELAN about crop priorities..."
-          className="w-full bg-transparent px-2 text-base text-[#2f4e3d] placeholder:text-[#84a091] focus:outline-none"
+          className="w-full bg-transparent px-2 text-sm text-[#2f4e3d] placeholder:text-[#84a091] focus:outline-none"
         />
         <button
           disabled={!canSend}
           onClick={sendMessage}
-          className="rounded-xl bg-[#36398e] p-2.5 text-white transition-colors hover:bg-[#2e3078] disabled:cursor-not-allowed disabled:opacity-45"
+          className="rounded-xl bg-[#36398e] p-2 text-white transition-colors hover:bg-[#2e3078] disabled:cursor-not-allowed disabled:opacity-45"
           aria-label="Send message"
         >
-          <Send className="h-5 w-5" />
+          <Send className="h-4 w-4" />
         </button>
       </div>
     </section>

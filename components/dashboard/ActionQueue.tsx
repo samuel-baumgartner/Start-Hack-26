@@ -10,28 +10,28 @@ export function ActionQueue({ actions }: ActionQueueProps) {
   const sortedActions = [...actions].sort((a, b) => {
     const rank = { critical: 0, warning: 1, routine: 2 };
     return rank[a.urgency] - rank[b.urgency];
-  });
+  }).slice(0, 2);
 
   return (
-    <section className="panel-card rounded-3xl p-6">
-      <h2 className="mb-4 text-xl font-semibold uppercase tracking-wide text-[#496856]">Action Queue</h2>
-      <div className="custom-scrollbar max-h-[360px] space-y-3 overflow-y-auto pr-1">
+    <section className="panel-card rounded-3xl p-4">
+      <h2 className="mb-2 text-lg font-semibold uppercase tracking-wide text-[#496856]">Action Queue</h2>
+      <div className="space-y-2">
         {sortedActions.map((item) => (
           <article
             key={item.id}
-            className={`rounded-2xl border border-[#e3ede4] border-l-4 bg-white/90 p-4 ${urgencyBorder(item.urgency)}`}
+            className={`rounded-2xl border border-[#e3ede4] border-l-6 bg-white/90 p-2.5 ${urgencyBorder(item.urgency)}`}
           >
-            <div className="mb-1 flex items-start justify-between gap-2">
-              <p className="text-base text-[#244032]">{item.text}</p>
+            <div className="mb-0.5 flex items-start justify-between gap-1.5">
+              <p className="text-sm text-[#244032]">{item.text}</p>
               {item.urgency === "critical" ? (
-                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[#ef4444]" />
+                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#ef4444]" />
               ) : item.urgency === "warning" ? (
-                <Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-[#f59e0b]" />
+                <Clock3 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#f59e0b]" />
               ) : (
-                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#009f3c]" />
+                <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#009f3c]" />
               )}
             </div>
-            <p className="text-sm font-mono text-[#688772]">{item.timestamp}</p>
+            <p className="text-xs font-mono text-[#688772]">{item.timestamp}</p>
           </article>
         ))}
       </div>

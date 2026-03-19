@@ -11,7 +11,7 @@ interface ZoneDetailProps {
 
 export function ZoneDetail({ zone, onBack }: ZoneDetailProps) {
   return (
-    <section className="panel-card fade-in rounded-3xl p-6">
+    <section className="panel-card fade-in h-full min-h-[520px] rounded-3xl p-6">
       <div className="mb-5 flex items-center justify-between">
         <button
           className="inline-flex items-center gap-2 rounded-full border border-[#d4e5d7] bg-white px-4 py-2 text-base text-[#335140] hover:border-[#36398e] hover:text-[#36398e]"
