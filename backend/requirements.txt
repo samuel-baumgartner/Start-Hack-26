@@ -5,3 +5,4 @@ scipy
 strands-agents[mcp]
 strands-agents-tools
 boto3
+paho-mqtt

@@ -19,6 +19,10 @@ const nextConfig: NextConfig = {
         source: "/api/auto-tick/:path*",
         destination: "http://localhost:8000/auto-tick/:path*",
       },
+      {
+        source: "/api/motor/:path*",
+        destination: "http://localhost:8000/motor/:path*",
+      },
     ];
   },
 };

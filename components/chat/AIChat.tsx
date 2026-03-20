@@ -48,10 +48,6 @@ export function AIChat() {
 
   return (
     <section className="flex h-full min-h-0 flex-col rounded-2xl border border-[#d7e6d8] bg-white/70 p-3">
-      <div className="mb-2 flex items-center justify-between rounded-xl bg-[#edf4ee] px-2.5 py-1.5">
-        <p className="text-xs font-semibold uppercase tracking-wide text-[#486554]">AI Chat</p>
-      </div>
-
       <div className="mb-2 min-h-0 flex-1 space-y-2 overflow-hidden pr-0.5">
         {visibleMessages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.role === "ai" ? "justify-start" : "justify-end"}`}>
@@ -68,7 +64,7 @@ export function AIChat() {
                 >
                   {msg.role === "ai" ? "AI" : "N"}
                 </span>
-                <span>{msg.role === "ai" ? "NELAN Copilot" : "Nelan"}</span>
+                <span>{msg.role === "ai" ? "Flora" : "Nelan"}</span>
                 <span className="font-mono opacity-70">{msg.time}</span>
               </div>
               <p>{msg.text}</p>
@@ -91,7 +87,7 @@ export function AIChat() {
               sendMessage();
             }
           }}
-          placeholder="Ask NELAN about crop priorities..."
+          placeholder="Ask Flora about crop priorities..."
           className="w-full bg-transparent px-2 text-xs text-[#2f4e3d] placeholder:text-[#84a091] focus:outline-none"
         />
         <button

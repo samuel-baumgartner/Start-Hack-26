@@ -186,10 +186,12 @@ app.add_middleware(
 from api.simulation_routes import router as sim_router
 from api.event_routes import router as event_router
 from api.agent_routes import router as agent_router
+from api.motor_routes import router as motor_router
 
 app.include_router(sim_router)
 app.include_router(event_router)
 app.include_router(agent_router)
+app.include_router(motor_router)
 
 
 # Auto-tick control endpoints
@@ -270,5 +272,6 @@ def root():
             "optimize": "/sim/optimize",
             "agent_tick": "/agent/tick",
             "agent_query": "/agent/query",
+            "motor_trigger": "/motor/trigger",
         },
     }
