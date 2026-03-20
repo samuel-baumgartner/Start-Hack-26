@@ -151,7 +151,7 @@ export function Dashboard() {
       const response = await fetch("/api/motor/trigger", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ alert_id: forcedAlertProposal.id }),
+        body: JSON.stringify({ alert_id: forcedAlertProposal.id, duration: 15 }),
       });
       if (!response.ok) {
         let detail = "Motor trigger request failed";

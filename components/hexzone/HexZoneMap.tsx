@@ -13,6 +13,7 @@ type ViewPhase = "overview" | "detailing" | "detail";
 const DETAIL_PLOT_COUNT = 12;
 const CALORIC_BASE_DWARF_WHEAT_PLOTS = new Set([0, 2, 5, 7, 8, 10]);
 const DETAIL_ENTER_SLOWDOWN = 1.5;
+const DISEASE_PLOT_INDEX = 6; // Plot 7 in one-based numbering.
 
 interface PlotSensors {
   moisture: number;
@@ -113,6 +114,7 @@ export function HexZoneMap() {
     if (!activeZone || selectedPlotIndex === null) return null;
     return sensorSnapshot(activeZone.id, selectedPlotIndex);
   }, [activeZone, selectedPlotIndex]);
+  const selectedPlotHasDisease = selectedPlotIndex === DISEASE_PLOT_INDEX;
 
   async function enterZoneDetail(zoneId: HexZone["id"]) {
     if (isAnimating) return;
@@ -262,6 +264,11 @@ export function HexZoneMap() {
               {selectedPlotCrop ? (
                 <p className="mb-1.5 text-[11px] font-medium text-[#3a6a4a]">
                   {selectedPlotCrop.emoji} {selectedPlotCrop.name}
+                </p>
+              ) : null}
+              {selectedPlotHasDisease ? (
+                <p className="mb-1.5 rounded-md border border-[#f5c2c7] bg-[#fdecec] px-2.5 py-1.5 text-[11px] font-medium text-[#8a1c1c]">
+                  Disease alert: this plant shows signs of infection.
                 </p>
               ) : null}
               {selectedSensors ? (

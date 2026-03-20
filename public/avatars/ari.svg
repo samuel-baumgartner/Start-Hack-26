@@ -1,0 +1,15 @@
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgAri" x1="8" y1="8" x2="72" y2="72" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E2F1FF"/>
+      <stop offset="1" stop-color="#CDE5FF"/>
+    </linearGradient>
+  </defs>
+  <circle cx="40" cy="40" r="36" fill="url(#bgAri)"/>
+  <circle cx="40" cy="34" r="12" fill="#F2C9A0"/>
+  <path d="M28 33C28 25.5 33.8 20 40 20C46.2 20 52 25.5 52 33V36H28V33Z" fill="#234E7A"/>
+  <path d="M22 61C22 51.6 29.6 44 39 44H41C50.4 44 58 51.6 58 61V66H22V61Z" fill="#3F78B6"/>
+  <circle cx="35.5" cy="34.5" r="1.2" fill="#35516E"/>
+  <circle cx="44.5" cy="34.5" r="1.2" fill="#35516E"/>
+  <path d="M36 39.5C37.4 40.9 42.6 40.9 44 39.5" stroke="#B5745F" stroke-width="1.2" stroke-linecap="round"/>
+</svg>

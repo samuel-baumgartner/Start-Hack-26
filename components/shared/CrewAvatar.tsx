@@ -1,28 +1,38 @@
 "use client";
 
+import Image from "next/image";
+
 interface CrewAvatarProps {
   avatar?: "male" | "female" | string;
   size?: "sm" | "md";
 }
 
 const sizeClasses: Record<NonNullable<CrewAvatarProps["size"]>, string> = {
-  sm: "h-8 w-8 text-xs",
-  md: "h-10 w-10 text-base",
+  sm: "h-8 w-8",
+  md: "h-10 w-10",
 };
 
-const avatarColor: Record<string, string> = {
-  male: "bg-[#e0e2f8] text-[#36398e]",
-  female: "bg-[#fde2ec] text-[#8f2d56]",
+const avatarImageByKey: Record<string, string> = {
+  ari: "/avatars/ari.svg",
+  maya: "/avatars/maya.svg",
+  "luis-photo": "/ProfileImage.jpeg",
 };
 
 export function CrewAvatar({ avatar = "male", size = "md" }: CrewAvatarProps) {
-  const label = typeof avatar === "string" && avatar.length > 0 ? avatar[0].toUpperCase() : "A";
+  const src = avatarImageByKey[avatar] ?? "/avatars/ari.svg";
+
   return (
     <span
-      className={`flex items-center justify-center rounded-full font-semibold ${sizeClasses[size]} ${avatarColor[avatar] ?? avatarColor.male}`}
+      className={`relative overflow-hidden rounded-full border border-[#d9e7db] bg-white ${sizeClasses[size]}`}
       aria-hidden="true"
     >
-      {label}
+      <Image
+        src={src}
+        alt={`${avatar} avatar`}
+        fill
+        className="object-cover"
+        sizes={size === "sm" ? "32px" : "40px"}
+      />
     </span>
   );
 }

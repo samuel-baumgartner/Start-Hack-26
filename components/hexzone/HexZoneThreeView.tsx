@@ -20,6 +20,7 @@ const HEX_RADIUS = 28;
 const HEX_HEIGHT = 48;
 const SELECTED_PLOT_LIFT = 6;
 const ROW_PATTERN = [2, 3, 2, 3, 2] as const;
+const DISEASE_PLOT_INDEX = 6; // Plot 7 in one-based numbering.
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
@@ -55,6 +56,7 @@ export function HexZoneThreeView({ zone, plotSlots, orbitProgress, selectedPlotI
     scene: THREE.Scene;
     group: THREE.Group;
     plotMeshes: THREE.Mesh[];
+    interactiveObjects: THREE.Object3D[];
     renderer: THREE.WebGLRenderer;
     frameId: number | null;
     resizeObserver: ResizeObserver | null;
@@ -139,7 +141,7 @@ export function HexZoneThreeView({ zone, plotSlots, orbitProgress, selectedPlotI
       pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
       raycaster.setFromCamera(pointer, camera);
-      const hits = raycaster.intersectObjects(state.plotMeshes, false);
+      const hits = raycaster.intersectObjects(state.interactiveObjects, false);
       if (hits.length === 0) return;
       const hit = hits[0].object as THREE.Mesh;
       const plotIndex = hit.userData.plotIndex as number | undefined;
@@ -154,7 +156,7 @@ export function HexZoneThreeView({ zone, plotSlots, orbitProgress, selectedPlotI
       pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
       raycaster.setFromCamera(pointer, camera);
-      const hits = raycaster.intersectObjects(state.plotMeshes, false);
+      const hits = raycaster.intersectObjects(state.interactiveObjects, false);
       renderer.domElement.style.cursor = hits.length > 0 ? "pointer" : "default";
     }
 
@@ -195,7 +197,7 @@ export function HexZoneThreeView({ zone, plotSlots, orbitProgress, selectedPlotI
     resizeObserver.observe(mountEl);
     updateSize();
 
-    sceneRef.current = { camera, scene, group, plotMeshes: [], renderer, frameId: null, resizeObserver };
+    sceneRef.current = { camera, scene, group, plotMeshes: [], interactiveObjects: [], renderer, frameId: null, resizeObserver };
     sceneRef.current.frameId = window.requestAnimationFrame(renderFrame);
 
     return () => {
@@ -223,6 +225,7 @@ export function HexZoneThreeView({ zone, plotSlots, orbitProgress, selectedPlotI
 
     clearGroup(state.group);
     state.plotMeshes = [];
+    state.interactiveObjects = [];
 
     const slotPositions = getRowPatternPositions(0, 0, HEX_RADIUS, ROW_PATTERN).map(({ x, y }) => ({ x, z: y }));
 
@@ -271,6 +274,7 @@ export function HexZoneThreeView({ zone, plotSlots, orbitProgress, selectedPlotI
       state.group.add(mesh);
       state.group.add(edges);
       state.plotMeshes.push(mesh);
+      state.interactiveObjects.push(mesh);
 
       {
         const markerCanvas = document.createElement("canvas");
@@ -339,6 +343,45 @@ export function HexZoneThreeView({ zone, plotSlots, orbitProgress, selectedPlotI
       cropSprite.scale.set(isSelected ? baseScale + 2 : baseScale, isSelected ? baseScale + 2 : baseScale, 1);
       cropSprite.position.set(slotPosition.x, height + 20 + (isSelected ? SELECTED_PLOT_LIFT : 0), slotPosition.z);
       state.group.add(cropSprite);
+
+      if (index === DISEASE_PLOT_INDEX) {
+        const warningCanvas = document.createElement("canvas");
+        warningCanvas.width = 128;
+        warningCanvas.height = 128;
+        const warningCtx = warningCanvas.getContext("2d");
+        if (!warningCtx) return;
+
+        warningCtx.clearRect(0, 0, 128, 128);
+        warningCtx.beginPath();
+        warningCtx.moveTo(64, 12);
+        warningCtx.lineTo(118, 106);
+        warningCtx.lineTo(10, 106);
+        warningCtx.closePath();
+        warningCtx.fillStyle = "#dc2626";
+        warningCtx.fill();
+        warningCtx.lineWidth = 6;
+        warningCtx.strokeStyle = "#fee2e2";
+        warningCtx.stroke();
+        warningCtx.fillStyle = "#ffffff";
+        warningCtx.font = "700 60px system-ui";
+        warningCtx.textAlign = "center";
+        warningCtx.textBaseline = "middle";
+        warningCtx.fillText("!", 64, 72);
+
+        const warningSprite = new THREE.Sprite(
+          new THREE.SpriteMaterial({
+            map: new THREE.CanvasTexture(warningCanvas),
+            transparent: true,
+            depthTest: true,
+            depthWrite: false,
+          }),
+        );
+        warningSprite.scale.set(isSelected ? 12 : 10, isSelected ? 12 : 10, 1);
+        warningSprite.position.set(slotPosition.x, height + 34 + (isSelected ? SELECTED_PLOT_LIFT : 0), slotPosition.z);
+        warningSprite.userData.plotIndex = index;
+        state.group.add(warningSprite);
+        state.interactiveObjects.push(warningSprite);
+      }
     });
   }, [zone, plotSlots, selectedPlotIndex]);
 

@@ -17,6 +17,7 @@ export const crewTeam: AstronautProfile[] = [
     crewId: "MC-2039-01",
     mission: "Ares IV - Surface Ops",
     initials: "AK",
+    avatar: "ari",
   },
   {
     name: "Maya Petrov",
@@ -26,6 +27,7 @@ export const crewTeam: AstronautProfile[] = [
     mission: "Ares IV - Surface Ops",
     initials: "MP",
     vitaminDeficiency: "Vitamin D low",
+    avatar: "maya",
   },
   {
     name: "Luis Ortega",
@@ -34,6 +36,7 @@ export const crewTeam: AstronautProfile[] = [
     crewId: "MC-2039-03",
     mission: "Ares IV - Surface Ops",
     initials: "LO",
+    avatar: "luis-photo",
   },
 ];
 
