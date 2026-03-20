@@ -40,6 +40,11 @@ export function Sidebar({ alertView, teamMembers, chatView }: SidebarProps) {
                     <span className="font-mono text-[#1f3f2d]">{member.crewId}</span>
                   </p>
                   <p className="truncate text-[11px] text-[#607f6a]">{member.mission}</p>
+                  {member.vitaminDeficiency ? (
+                    <p className="mt-1 inline-flex rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                      Deficiency: {member.vitaminDeficiency}
+                    </p>
+                  ) : null}
                 </div>
               </div>
             </article>

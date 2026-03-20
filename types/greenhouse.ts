@@ -10,6 +10,7 @@ export interface AstronautProfile {
   mission: string;
   initials: string;
   avatar: "male" | "female";
+  vitaminDeficiency?: string;
 }
 
 export interface HealthLogEntry {

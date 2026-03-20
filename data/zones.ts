@@ -28,6 +28,7 @@ export const crewTeam: AstronautProfile[] = [
     mission: "Ares IV - Surface Ops",
     initials: "MP",
     avatar: "female",
+    vitaminDeficiency: "Vitamin K deficiency",
   },
   {
     name: "Luis Ortega",

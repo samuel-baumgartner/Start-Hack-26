@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { AlertTriangle, ChevronDown, CircleUserRound } from "lucide-react";
 import { CrewAvatar } from "@/components/shared/CrewAvatar";
 import { HeartbeatEffectButton } from "@/components/ui/heartbeat-effect-button";
@@ -191,7 +192,7 @@ export function Header({
               <span className="text-sm text-[#6b8f6b]">{health.trend}</span>
             </div>
 
-            <div className="flex items-center">
+            <div className="flex items-end justify-between gap-4">
               <button
                 onClick={() => setLogOpen((prev) => !prev)}
                 className="inline-flex items-center gap-1 text-sm text-[#476554] underline-offset-2 hover:text-[#36398e] hover:underline"
@@ -199,6 +200,22 @@ export function Header({
                 Health log
                 <ChevronDown className={`h-4 w-4 transition-transform ${logOpen ? "rotate-180" : ""}`} />
               </button>
+
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-[#6b8f6b]">Partners</span>
+                <div className="rounded-lg border border-[#d7e6d8] bg-white/85 px-2 py-1">
+                  <Image src="/logos/aws-logo.svg" alt="AWS" width={70} height={24} className="h-5 w-auto" />
+                </div>
+                <div className="rounded-lg border border-[#d7e6d8] bg-white/85 px-2 py-1">
+                  <Image
+                    src="/logos/syngenta-logo.png"
+                    alt="Syngenta"
+                    width={96}
+                    height={24}
+                    className="h-5 w-auto"
+                  />
+                </div>
+              </div>
             </div>
 
             {logOpen ? (
