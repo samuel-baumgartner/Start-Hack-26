@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { AlertTriangle, ChevronDown, CircleUserRound } from "lucide-react";
+import { AlertTriangle, ChevronDown } from "lucide-react";
 import { CrewAvatar } from "@/components/shared/CrewAvatar";
 import { HeartbeatEffectButton } from "@/components/ui/heartbeat-effect-button";
 import type { AlertItem, AstronautProfile, GreenhouseHealth, HealthLogEntry } from "@/types/greenhouse";
@@ -157,12 +157,11 @@ export function Header({
 
             <div className="relative" ref={profileRef}>
               <button
-                className="group flex items-center gap-2 rounded-full border border-[#d6e8d8] bg-white/90 px-3 py-2.5 shadow-sm transition-colors hover:bg-white"
+                className="group flex items-center rounded-full border border-[#d6e8d8] bg-white/90 px-3 py-2.5 shadow-sm transition-colors hover:bg-white"
                 onClick={() => setProfileOpen((prev) => !prev)}
                 aria-label="Open astronaut profile"
               >
                 <CrewAvatar avatar={profile.avatar} size="md" />
-                <CircleUserRound className="h-5 w-5 text-[#52705b] group-hover:text-[#36398e]" />
               </button>
 
               {profileOpen ? (
