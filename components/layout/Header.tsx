@@ -15,6 +15,8 @@ interface HeaderProps {
   forcedAlertProposal?: AlertItem | null;
   onAcceptForcedAlert?: () => void;
   onDenyForcedAlert?: () => void;
+  isProcessingForcedAlert?: boolean;
+  forcedAlertError?: string | null;
 }
 
 function alertBadgeClasses(urgency: AlertItem["urgency"]): string {
@@ -35,6 +37,8 @@ export function Header({
   forcedAlertProposal,
   onAcceptForcedAlert,
   onDenyForcedAlert,
+  isProcessingForcedAlert = false,
+  forcedAlertError = null,
 }: HeaderProps) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [logOpen, setLogOpen] = useState(false);
@@ -88,22 +92,27 @@ export function Header({
               <p className="mt-2 text-base font-medium text-red-800">{forcedAlertProposal.text}</p>
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-2 self-end pb-1">
+          <div className="relative z-10 flex shrink-0 items-center gap-2 self-end pb-1">
             <button
               type="button"
               onClick={onDenyForcedAlert}
-              className="rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-50"
+              disabled={isProcessingForcedAlert}
+              className="rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Deny
             </button>
             <HeartbeatEffectButton
               type="button"
               onClick={onAcceptForcedAlert}
-              className="bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700"
+              disabled={isProcessingForcedAlert}
+              className="bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Accept
+              {isProcessingForcedAlert ? "Starting..." : "Accept"}
             </HeartbeatEffectButton>
           </div>
+          {forcedAlertError ? (
+            <p className="absolute bottom-2 left-5 text-xs font-medium text-red-700">{forcedAlertError}</p>
+          ) : null}
         </div>
       ) : activeAlert ? (
         <div className="flex min-h-[166px] items-center gap-4 rounded-2xl border border-amber-300/80 bg-amber-50/85 px-5 py-4 animate-pulse">
