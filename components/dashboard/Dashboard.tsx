@@ -24,6 +24,7 @@ export function Dashboard() {
   const [forcedAlertProposal, setForcedAlertProposal] = useState<AlertItem | null>(null);
   const [acceptedForcedAlerts, setAcceptedForcedAlerts] = useState<AlertItem[]>([]);
   const [isAcceptingForcedAlert, setIsAcceptingForcedAlert] = useState(false);
+  const [forcedAlertError, setForcedAlertError] = useState<string | null>(null);
   const [hiddenAlertIds, setHiddenAlertIds] = useState<Set<string>>(new Set());
   const seenAlertIdsRef = useRef<Set<string>>(new Set(alerts.map((alert) => alert.id)));
   const alertTimeoutRef = useRef<number | null>(null);
@@ -114,6 +115,7 @@ export function Dashboard() {
       setForcedAlertProposal((prev) => {
         if (prev) return prev;
         playAlertSound();
+        setForcedAlertError(null);
         return {
           id: `forced-${Date.now()}`,
           category: "Sand storm",
@@ -133,6 +135,7 @@ export function Dashboard() {
     if (isAcceptingForcedAlert) return;
 
     setIsAcceptingForcedAlert(true);
+    setForcedAlertError(null);
     try {
       const response = await fetch("/api/motor/trigger", {
         method: "POST",
@@ -140,12 +143,21 @@ export function Dashboard() {
         body: JSON.stringify({ alert_id: forcedAlertProposal.id }),
       });
       if (!response.ok) {
-        throw new Error("Motor trigger request failed");
+        let detail = "Motor trigger request failed";
+        try {
+          const payload = (await response.json()) as { detail?: string };
+          if (payload.detail) detail = payload.detail;
+        } catch {
+          // Keep default detail.
+        }
+        throw new Error(detail);
       }
 
       setAcceptedForcedAlerts((prev) => [forcedAlertProposal, ...prev]);
       setForcedAlertProposal(null);
     } catch (error) {
+      const message = error instanceof Error ? error.message : "Motor trigger request failed";
+      setForcedAlertError(message);
       console.error("Accept alert motor trigger failed:", error);
     } finally {
       setIsAcceptingForcedAlert(false);
@@ -154,6 +166,7 @@ export function Dashboard() {
 
   function denyForcedAlert() {
     setForcedAlertProposal(null);
+    setForcedAlertError(null);
   }
 
   return (
@@ -169,6 +182,8 @@ export function Dashboard() {
             forcedAlertProposal={forcedAlertProposal}
             onAcceptForcedAlert={acceptForcedAlert}
             onDenyForcedAlert={denyForcedAlert}
+            isProcessingForcedAlert={isAcceptingForcedAlert}
+            forcedAlertError={forcedAlertError}
           />
         </div>
 
