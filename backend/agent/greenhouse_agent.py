@@ -6,7 +6,7 @@ import logging
 import os
 from typing import Callable
 
-from agent.prompts import SYSTEM_PROMPT
+from agent.prompts import KB_PROMPT_SECTION, SYSTEM_PROMPT
 from agent.tools import (
     adjust_humidity,
     adjust_irrigation,
@@ -82,6 +82,9 @@ def create_agent() -> tuple[Callable | None, object | None]:
         model = BedrockModel(
             model_id="us.anthropic.claude-sonnet-4-5-20250929-v1:0",
             region_name=os.environ.get("AWS_DEFAULT_REGION", "us-west-2"),
+            guardrail_id=os.environ.get("GUARDRAIL_ID"),
+            guardrail_version=os.environ.get("GUARDRAIL_VERSION", "1"),
+            guardrail_trace="enabled",
         )
 
         # Try to connect to Syngenta MCP Knowledge Base
@@ -97,9 +100,24 @@ def create_agent() -> tuple[Callable | None, object | None]:
         if memory_provider:
             tools.extend(memory_provider.tools)
 
+        # Add Bedrock Knowledge Base retrieve tool for RAG
+        kb_id = os.environ.get("BEDROCK_KB_ID")
+        has_kb = False
+        if kb_id:
+            try:
+                from strands_tools import retrieve
+                os.environ["STRANDS_KNOWLEDGE_BASE_ID"] = kb_id
+                tools.append(retrieve)
+                has_kb = True
+                logger.info(f"Bedrock KB retrieve tool added (kb_id={kb_id})")
+            except Exception:
+                logger.warning("strands_tools.retrieve not available — KB retrieval disabled")
+
+        system_prompt = SYSTEM_PROMPT + (KB_PROMPT_SECTION if has_kb else "")
+
         agent = Agent(
             model=model,
-            system_prompt=SYSTEM_PROMPT,
+            system_prompt=system_prompt,
             tools=tools,
         )
 
