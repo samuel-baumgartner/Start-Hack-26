@@ -19,6 +19,8 @@ export const crewTeam: AstronautProfile[] = [
     mission: "Ares IV - Surface Ops",
     initials: "AK",
     avatar: "male",
+    assignedResponsibilities: "Power systems, Zone B irrigation",
+    lastActive: "Active now",
   },
   {
     name: "Maya Petrov",
@@ -29,6 +31,8 @@ export const crewTeam: AstronautProfile[] = [
     initials: "MP",
     avatar: "female",
     vitaminDeficiency: "Vitamin K deficiency",
+    assignedResponsibilities: "Crew health, nutrient planning",
+    lastActive: "2h ago",
   },
   {
     name: "Luis Ortega",
@@ -38,6 +42,8 @@ export const crewTeam: AstronautProfile[] = [
     mission: "Ares IV - Surface Ops",
     initials: "LO",
     avatar: "male",
+    assignedResponsibilities: "Exterior maintenance",
+    lastActive: "Active now",
   },
 ];
 

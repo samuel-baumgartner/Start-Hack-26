@@ -11,6 +11,8 @@ export interface AstronautProfile {
   initials: string;
   avatar: "male" | "female";
   vitaminDeficiency?: string;
+  assignedResponsibilities?: string;
+  lastActive?: string;
 }
 
 export interface HealthLogEntry {

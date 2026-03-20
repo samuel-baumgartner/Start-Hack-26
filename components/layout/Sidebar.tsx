@@ -34,12 +34,26 @@ export function Sidebar({ alertView, teamMembers, chatView }: SidebarProps) {
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-[#163126]">{member.name}</p>
                   <p className="text-xs text-[#607f6a]">{member.role}</p>
-                  <p className="mt-1 text-[11px] text-[#486554]">
-                    Sol <span className="font-mono text-[#1f3f2d]">{member.sol}</span>
-                    {" · "}
-                    <span className="font-mono text-[#1f3f2d]">{member.crewId}</span>
-                  </p>
-                  <p className="truncate text-[11px] text-[#607f6a]">{member.mission}</p>
+                  {member.assignedResponsibilities ? (
+                    <p className="mt-1 text-[11px] text-[#486554]">
+                      Assigned: <span className="text-[#1f3f2d]">{member.assignedResponsibilities}</span>
+                      {member.lastActive ? (
+                        <>
+                          {" · "}
+                          <span className="font-medium text-[#1f3f2d]">{member.lastActive}</span>
+                        </>
+                      ) : null}
+                    </p>
+                  ) : (
+                    <>
+                      <p className="mt-1 text-[11px] text-[#486554]">
+                        Sol <span className="font-mono text-[#1f3f2d]">{member.sol}</span>
+                        {" · "}
+                        <span className="font-mono text-[#1f3f2d]">{member.crewId}</span>
+                      </p>
+                      <p className="truncate text-[11px] text-[#607f6a]">{member.mission}</p>
+                    </>
+                  )}
                   {member.vitaminDeficiency ? (
                     <p className="mt-1 inline-flex rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
                       Deficiency: {member.vitaminDeficiency}
