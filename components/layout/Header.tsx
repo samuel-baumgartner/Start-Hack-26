@@ -201,18 +201,17 @@ export function Header({
                 <ChevronDown className={`h-4 w-4 transition-transform ${logOpen ? "rotate-180" : ""}`} />
               </button>
 
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-semibold uppercase tracking-wide text-[#6b8f6b]">Partners</span>
-                <div className="rounded-lg border border-[#d7e6d8] bg-white/85 px-2 py-1">
-                  <Image src="/logos/aws-logo.svg" alt="AWS" width={70} height={24} className="h-5 w-auto" />
+              <div className="flex items-center gap-2.5">
+                <div className="rounded-lg border border-[#d7e6d8] bg-white/85 px-3 py-2">
+                  <Image src="/logos/aws-logo.svg" alt="AWS" width={110} height={36} className="h-9 w-auto" />
                 </div>
-                <div className="rounded-lg border border-[#d7e6d8] bg-white/85 px-2 py-1">
+                <div className="rounded-lg border border-[#d7e6d8] bg-white/85 px-3 py-2">
                   <Image
                     src="/logos/syngenta-logo.png"
                     alt="Syngenta"
-                    width={96}
-                    height={24}
-                    className="h-5 w-auto"
+                    width={154}
+                    height={36}
+                    className="h-9 w-auto"
                   />
                 </div>
               </div>
