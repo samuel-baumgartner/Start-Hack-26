@@ -9,19 +9,19 @@ const uint8_t DIR_PIN = D5;
 // false -> local mode: wait 5s, run 5s, stop
 const bool USE_INTERNET_CONTROL = true;
 
-// Hotspot credentials for the ESP8266 connection.
-const char* WIFI_SSID = "REDACTED_WIFI_SSID";
-const char* WIFI_PASSWORD = "REDACTED_WIFI_PASSWORD";
+// Local WiFi credentials. Replace locally before flashing firmware.
+const char* WIFI_SSID = "REPLACE_WITH_WIFI_SSID";
+const char* WIFI_PASSWORD = "REPLACE_WITH_WIFI_PASSWORD";
 
 // HiveMQ endpoint and command channel.
 const char* MQTT_HOST = "broker.hivemq.com";
 const IPAddress MQTT_HOST_IP(35, 158, 68, 5); // IPv4 fallback for hotspot/DNS issues.
 const bool USE_MQTT_IP = true;
 const uint16_t MQTT_PORT = 1883;
-const char* MQTT_TOPIC = "hackathon/REDACTED/motor-board/cmd";
+const char* MQTT_TOPIC = "hackathon/replace-me/motor-board/cmd";
 
 // Shared secret embedded in payload to reduce accidental/guessable control.
-const char* CMD_TOKEN = "REDACTED_MOTOR_TOKEN";
+const char* CMD_TOKEN = "REPLACE_WITH_MOTOR_TOKEN";
 
 const unsigned int STEP_INTERVAL_US = 1000; // Lower value = faster spin.
 const unsigned int STEP_HIGH_US = 10;

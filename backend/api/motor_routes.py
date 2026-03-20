@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import socket
 import time
 import uuid
@@ -13,8 +14,8 @@ import paho.mqtt.client as mqtt
 
 DEFAULT_HOST = "broker.hivemq.com"
 DEFAULT_PORT = 1883
-DEFAULT_TOPIC = "hackathon/REDACTED/motor-board/cmd"
-DEFAULT_TOKEN = "REDACTED_MOTOR_TOKEN"
+DEFAULT_TOPIC = os.environ.get("MOTOR_MQTT_TOPIC", "hackathon/replace-me/motor-board/cmd")
+DEFAULT_TOKEN = os.environ.get("MOTOR_CMD_TOKEN")
 
 router = APIRouter(prefix="/motor", tags=["motor"])
 
@@ -24,7 +25,7 @@ class MotorTriggerRequest(BaseModel):
     host: str = DEFAULT_HOST
     port: int = DEFAULT_PORT
     topic: str = DEFAULT_TOPIC
-    token: str = DEFAULT_TOKEN
+    token: str | None = None
     duration: float = Field(default=5.0, ge=0.1, le=120.0)
     run_repeat_interval: float = Field(default=0.5, ge=0.05, le=30.0)
     retries: int = Field(default=8, ge=1, le=30)
@@ -51,6 +52,10 @@ def _connect_with_retry(
 
 
 def _publish_motor_sequence(req: MotorTriggerRequest) -> dict:
+    token = req.token or DEFAULT_TOKEN
+    if not token:
+        raise RuntimeError("Missing motor command token. Set MOTOR_CMD_TOKEN or pass token in request.")
+
     client_id = f"motor-publisher-{uuid.uuid4().hex[:10]}"
     client = mqtt.Client(
         callback_api_version=mqtt.CallbackAPIVersion.VERSION2,
@@ -64,8 +69,8 @@ def _publish_motor_sequence(req: MotorTriggerRequest) -> dict:
     _connect_with_retry(client, req.host, req.port, req.retries, req.retry_delay)
     client.loop_start()
 
-    run_payload = f"run:{req.token}"
-    stop_payload = f"stop:{req.token}"
+    run_payload = f"run:{token}"
+    stop_payload = f"stop:{token}"
 
     try:
         end_time = time.time() + req.duration

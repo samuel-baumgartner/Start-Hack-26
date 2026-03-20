@@ -7,25 +7,46 @@ Publish motor commands to HiveMQ:
 """
 
 import argparse
+import os
 import socket
 import time
 import uuid
+from pathlib import Path
 
 import paho.mqtt.client as mqtt
 
 
 DEFAULT_HOST = "broker.hivemq.com"
 DEFAULT_PORT = 1883
-DEFAULT_TOPIC = "hackathon/REDACTED/motor-board/cmd"
-DEFAULT_TOKEN = "REDACTED_MOTOR_TOKEN"
+DEFAULT_TOPIC = "hackathon/replace-me/motor-board/cmd"
+
+
+def _load_env() -> None:
+    env_path = Path(__file__).resolve().parent / ".env"
+    if not env_path.exists():
+        return
+    for raw_line in env_path.read_text().splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[7:].strip()
+        if "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key:
+            os.environ.setdefault(key, value)
 
 
 def parse_args() -> argparse.Namespace:
+    _load_env()
     parser = argparse.ArgumentParser(description="Send run/stop motor commands via MQTT.")
-    parser.add_argument("--host", default=DEFAULT_HOST, help="MQTT broker host")
-    parser.add_argument("--port", type=int, default=DEFAULT_PORT, help="MQTT broker port")
-    parser.add_argument("--topic", default=DEFAULT_TOPIC, help="MQTT topic")
-    parser.add_argument("--token", default=DEFAULT_TOKEN, help="Shared token")
+    parser.add_argument("--host", default=os.environ.get("MOTOR_MQTT_HOST", DEFAULT_HOST), help="MQTT broker host")
+    parser.add_argument("--port", type=int, default=int(os.environ.get("MOTOR_MQTT_PORT", str(DEFAULT_PORT))), help="MQTT broker port")
+    parser.add_argument("--topic", default=os.environ.get("MOTOR_MQTT_TOPIC", DEFAULT_TOPIC), help="MQTT topic")
+    parser.add_argument("--token", default=os.environ.get("MOTOR_CMD_TOKEN"), help="Shared token")
     parser.add_argument("--duration", type=float, default=5.0, help="Seconds between run and stop")
     parser.add_argument(
         "--run-repeat-interval",
@@ -37,8 +58,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--retry-delay", type=float, default=2.0, help="Delay between retries (seconds)")
     parser.add_argument("--retain", action="store_true", default=False, help="Publish retained messages")
     parser.add_argument("--no-retain", dest="retain", action="store_false", help="Disable retained publish")
-    parser.add_argument("--username", default=None, help="MQTT username (optional)")
-    parser.add_argument("--password", default=None, help="MQTT password (optional)")
+    parser.add_argument("--username", default=os.environ.get("MOTOR_MQTT_USERNAME"), help="MQTT username (optional)")
+    parser.add_argument("--password", default=os.environ.get("MOTOR_MQTT_PASSWORD"), help="MQTT password (optional)")
     return parser.parse_args()
 
 
@@ -66,6 +87,8 @@ def connect_with_retry(
 
 def main() -> None:
     args = parse_args()
+    if not args.token:
+        raise RuntimeError("Missing motor token. Set MOTOR_CMD_TOKEN in ESP-8266_Code/.env or pass --token.")
 
     client_id = f"motor-publisher-{uuid.uuid4().hex[:10]}"
     client = mqtt.Client(
