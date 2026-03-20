@@ -30,12 +30,13 @@ export function Dashboard() {
   const alertTimeoutRef = useRef<number | null>(null);
   const headerAnchorRef = useRef<HTMLDivElement | null>(null);
   const alertAudioRef = useRef<HTMLAudioElement | null>(null);
+  const previousVisibleNotificationIdRef = useRef<string | null>(null);
 
   const playAlertSound = useCallback(() => {
     if (typeof window === "undefined") return;
 
     if (!alertAudioRef.current) {
-      const audio = new Audio("/sounds/alert-8.mp3");
+      const audio = new Audio("/Notification_sound.mpeg");
       audio.preload = "auto";
       alertAudioRef.current = audio;
     }
@@ -73,7 +74,6 @@ export function Dashboard() {
     }
 
     setActiveHeaderAlert(newlyArrived);
-    playAlertSound();
     setHiddenAlertIds((prev) => {
       const next = new Set(prev);
       next.add(newlyArrived.id);
@@ -102,6 +102,18 @@ export function Dashboard() {
   }, []);
 
   useEffect(() => {
+    const visibleNotificationId = forcedAlertProposal?.id ?? activeHeaderAlert?.id ?? null;
+    if (!visibleNotificationId) {
+      previousVisibleNotificationIdRef.current = null;
+      return;
+    }
+    if (previousVisibleNotificationIdRef.current === visibleNotificationId) return;
+
+    previousVisibleNotificationIdRef.current = visibleNotificationId;
+    playAlertSound();
+  }, [activeHeaderAlert, forcedAlertProposal, playAlertSound]);
+
+  useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key.toLowerCase() !== "f") return;
       if (event.repeat) return;
@@ -114,7 +126,6 @@ export function Dashboard() {
 
       setForcedAlertProposal((prev) => {
         if (prev) return prev;
-        playAlertSound();
         setForcedAlertError(null);
         return {
           id: `forced-${Date.now()}`,
@@ -128,7 +139,7 @@ export function Dashboard() {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [playAlertSound]);
+  }, []);
 
   async function acceptForcedAlert() {
     if (!forcedAlertProposal) return;

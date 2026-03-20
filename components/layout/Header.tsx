@@ -210,19 +210,13 @@ export function Header({
                 <ChevronDown className={`h-4 w-4 transition-transform ${logOpen ? "rotate-180" : ""}`} />
               </button>
 
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-semibold uppercase tracking-wide text-[#6b8f6b]">Partners</span>
-                <div className="rounded-lg border border-[#d7e6d8] bg-white/85 px-2 py-1">
-                  <Image src="/logos/aws-logo.svg" alt="AWS" width={70} height={24} className="h-5 w-auto" />
+              <div className="group flex items-center gap-2 rounded-2xl border border-[#cde2cf]/80 bg-gradient-to-r from-white/85 via-[#f3fbf4]/90 to-white/85 px-3.5 py-2.5 shadow-[0_8px_24px_rgba(32,98,65,0.12)] backdrop-blur-md transition-all duration-300 hover:border-[#b9d8be] hover:shadow-[0_12px_34px_rgba(26,98,70,0.2)]">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#4f745f]">Partners</span>
+                <div className="rounded-xl border border-[#d7e6d8] bg-white/95 px-3.5 py-2 shadow-[0_4px_14px_rgba(19,79,52,0.1)] transition-transform duration-300 group-hover:-translate-y-0.5">
+                  <Image src="/AWS.png" alt="AWS" width={140} height={50} className="h-10 w-auto object-contain" />
                 </div>
-                <div className="rounded-lg border border-[#d7e6d8] bg-white/85 px-2 py-1">
-                  <Image
-                    src="/logos/syngenta-logo.svg"
-                    alt="Syngenta"
-                    width={96}
-                    height={24}
-                    className="h-5 w-auto"
-                  />
+                <div className="rounded-xl border border-[#d7e6d8] bg-white/95 px-3.5 py-2 shadow-[0_4px_14px_rgba(19,79,52,0.1)] transition-transform duration-300 group-hover:-translate-y-0.5">
+                  <Image src="/Syngenta.jpeg" alt="Syngenta" width={168} height={50} className="h-10 w-auto object-contain" />
                 </div>
               </div>
             </div>
