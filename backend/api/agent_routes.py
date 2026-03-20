@@ -11,6 +11,8 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
+from agent.nasa_weather import get_nasa_weather_context
+
 
 def _dbg(msg: str, data: dict | None = None, hyp: str = "") -> None:
     try:
@@ -91,6 +93,39 @@ class QueryRequest(BaseModel):
     message: str
 
 
+def _format_nasa_weather_context(context: dict) -> str:
+    """Render concise NASA weather context for agent prompts."""
+    if context.get("status") != "ok":
+        error = context.get("error", "unknown error")
+        return f"NASA weather feed currently unavailable ({error})."
+
+    temp = context.get("temperature_c") or {}
+    pressure = context.get("pressure_pa") or {}
+    wind = context.get("wind_m_s") or {}
+
+    return (
+        "Latest NASA InSight weather "
+        f"(sol {context.get('latest_sol')}, season {context.get('season')}): "
+        f"temperature avg {temp.get('avg')}C (min {temp.get('min')}C, max {temp.get('max')}C), "
+        f"pressure avg {pressure.get('avg')} Pa, "
+        f"wind avg {wind.get('avg')} m/s. "
+        f"Fetched at {context.get('fetched_at_utc')}."
+    )
+
+
+async def _augment_prompt_with_nasa_context(prompt: str) -> str:
+    """Attach informational NASA weather context to agent prompts."""
+    context = await asyncio.to_thread(get_nasa_weather_context)
+    nasa_context = _format_nasa_weather_context(context)
+    return (
+        f"{prompt}\n\n"
+        "External Mars weather context from NASA (informational only):\n"
+        f"{nasa_context}\n\n"
+        "This NASA context is for situational awareness only. Do not take direct "
+        "actuation decisions from it unless in-simulation sensor readings corroborate."
+    )
+
+
 async def _invoke_agent(prompt: str, timeout_s: float = 60.0):
     """Invoke agent with timeout and inflight guard.
 
@@ -167,7 +202,8 @@ async def agent_tick():
             f"tick: {_engine.state.environment.tick}. "
             f"Read sensors, check for any issues, and take appropriate actions."
         )
-        result = await _invoke_agent(prompt, timeout_s=60.0)
+        prompt_with_context = await _augment_prompt_with_nasa_context(prompt)
+        result = await _invoke_agent(prompt_with_context, timeout_s=60.0)
 
         decision = {
             "sol": _engine.state.environment.sol,
@@ -197,7 +233,8 @@ async def agent_query(req: QueryRequest):
         raise HTTPException(status_code=503, detail="Agent not configured. Set AWS credentials and restart.")
 
     try:
-        result = await _invoke_agent(req.message, timeout_s=60.0)
+        prompt_with_context = await _augment_prompt_with_nasa_context(req.message)
+        result = await _invoke_agent(prompt_with_context, timeout_s=60.0)
         response = {
             "query": req.message,
             "response": str(result),
@@ -213,6 +250,21 @@ async def agent_query(req: QueryRequest):
         raise HTTPException(status_code=504, detail="Agent timed out (60s)")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Agent error: {str(e)}")
+
+
+@router.get("/nasa-weather")
+async def agent_nasa_weather(refresh: bool = Query(default=False)):
+    """Read the latest NASA weather context used by the agent."""
+    try:
+        context = await asyncio.to_thread(get_nasa_weather_context, refresh)
+        return {
+            "source": "NASA InSight",
+            "used_as_agent_context": True,
+            "refresh": refresh,
+            "data": context,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"NASA weather fetch error: {str(e)}")
 
 
 def clear_decisions() -> None:

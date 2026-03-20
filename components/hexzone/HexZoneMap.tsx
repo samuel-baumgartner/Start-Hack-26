@@ -11,18 +11,13 @@ import { CropDetailCard } from "./CropDetailCard";
 
 type ViewPhase = "overview" | "detailing" | "detail";
 const DETAIL_PLOT_COUNT = 12;
+const CALORIC_BASE_DWARF_WHEAT_PLOTS = new Set([0, 2, 5, 7, 8, 10]);
+const DETAIL_ENTER_SLOWDOWN = 1.5;
 
 interface PlotSensors {
   moisture: number;
   temperature: number;
   ph: number;
-}
-
-function plotRangeLabel(plotIndices: number[]): string {
-  if (plotIndices.length === 0) return "";
-  const sorted = [...plotIndices].sort((a, b) => a - b);
-  if (sorted.length === 1) return `Plot ${sorted[0] + 1}`;
-  return `Plots ${sorted[0] + 1}-${sorted[sorted.length - 1] + 1}`;
 }
 
 function badgeStyles(tone: HexZone["badgeTone"]) {
@@ -75,6 +70,17 @@ export function HexZoneMap() {
 
     if (!primaryCrop || !secondaryCrop) return [];
 
+    if (activeZone.id === "A") {
+      const dwarfWheat = activeCrops.find((crop) => crop.id === "wheat") ?? primaryCrop;
+      const sweetPotato = activeCrops.find((crop) => crop.id === "sweet-potato") ?? secondaryCrop;
+
+      return Array.from({ length: DETAIL_PLOT_COUNT }, (_, index) => ({
+        id: `${activeZone.id}-plot-${index + 1}`,
+        crop: CALORIC_BASE_DWARF_WHEAT_PLOTS.has(index) ? dwarfWheat : sweetPotato,
+        genericType: "generic" as const,
+      }));
+    }
+
     return Array.from({ length: DETAIL_PLOT_COUNT }, (_, index) => ({
       id: `${activeZone.id}-plot-${index + 1}`,
       crop: index < DETAIL_PLOT_COUNT / 2 ? primaryCrop : secondaryCrop,
@@ -94,7 +100,6 @@ export function HexZoneMap() {
     });
     return Array.from(grouped.values()).map((entry) => ({
       crop: entry.crop,
-      plotLabel: plotRangeLabel(entry.plotIndices),
       plotIndices: entry.plotIndices,
     }));
   }, [detailPlotSlots]);
@@ -122,14 +127,14 @@ export function HexZoneMap() {
     setStatsTranslateY(8);
     setSelectedPlotIndex(null);
 
-    await animate(300, (p) => {
+    await animate(300 * DETAIL_ENTER_SLOWDOWN, (p) => {
       setCardsOpacity(1 - p);
       setCardsScale(1 - p * 0.04);
     });
 
-    await animate(750, (p) => setCameraOrbit(p));
+    await animate(750 * DETAIL_ENTER_SLOWDOWN, (p) => setCameraOrbit(p));
 
-    await animate(300, (p) => {
+    await animate(300 * DETAIL_ENTER_SLOWDOWN, (p) => {
       setStatsOpacity(p);
       setStatsTranslateY(8 * (1 - p));
     });
@@ -281,11 +286,10 @@ export function HexZoneMap() {
             style={{ opacity: statsOpacity, transform: `translateY(${statsTranslateY}px)` }}
             className="grid grid-cols-1 gap-3 lg:grid-cols-2"
           >
-            {cropSummaries.map(({ crop, plotLabel }) => (
+            {cropSummaries.map(({ crop }) => (
               <CropDetailCard
                 key={crop.id}
                 crop={crop}
-                plotLabel={plotLabel}
                 isActive={selectedCropId === crop.id}
               />
             ))}

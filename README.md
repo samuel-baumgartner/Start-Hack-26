@@ -46,3 +46,19 @@ To add more shadcn components:
 ```bash
 pnpm dlx shadcn@latest add <component-name>
 ```
+
+## NASA Weather Context (Agent Demo)
+
+The backend agent now pulls Mars weather context from NASA's InSight weather API.
+This is used as informational context for agent reasoning only (it does not directly trigger simulator actions).
+
+- Endpoint: `GET /agent/nasa-weather`
+- Optional query: `refresh=true` to bypass cache and fetch fresh data
+- API key: set `NASA_API_KEY` in `backend/.env` (falls back to `DEMO_KEY` if not set)
+
+Quick demo call:
+
+```bash
+curl "http://localhost:8000/agent/nasa-weather"
+curl "http://localhost:8000/agent/nasa-weather?refresh=true"
+```

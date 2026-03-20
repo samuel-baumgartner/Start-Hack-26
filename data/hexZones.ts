@@ -44,8 +44,8 @@ const empty = (zoneId: string, index: number, genericType: "reserve" | "generic"
 export const hexZones: HexZone[] = [
   {
     id: "A",
-    name: "Zone A",
-    subtitle: "Caloric base",
+    name: "Caloric base",
+    subtitle: "Dwarf wheat & sweet potato",
     badgeLabel: "Stable",
     badgeTone: "green",
     theme: { color: "#009F3C", dark: "#006B28", light: "#E8F5E9" },
@@ -90,8 +90,8 @@ export const hexZones: HexZone[] = [
   },
   {
     id: "B",
-    name: "Zone B",
-    subtitle: "Protein & fats",
+    name: "Protein & fats",
+    subtitle: "Soybean",
     badgeLabel: "Mild stress",
     badgeTone: "amber",
     theme: { color: "#EF9F27", dark: "#B87A1D", light: "#FFF8E1" },
@@ -121,8 +121,8 @@ export const hexZones: HexZone[] = [
   },
   {
     id: "C",
-    name: "Zone C",
-    subtitle: "Micronutrients",
+    name: "Micronutrients",
+    subtitle: "Kale, spinach & cherry tomato",
     badgeLabel: "Harvest soon",
     badgeTone: "green",
     theme: { color: "#36398E", dark: "#252770", light: "#EEEDFE" },
@@ -182,8 +182,8 @@ export const hexZones: HexZone[] = [
   },
   {
     id: "D",
-    name: "Zone D",
-    subtitle: "Rapid response",
+    name: "Rapid response",
+    subtitle: "Radish & microgreens",
     badgeLabel: "Emergency reserve",
     badgeTone: "red",
     theme: { color: "#E24B4A", dark: "#A32D2D", light: "#FCEBEB" },

@@ -2,7 +2,6 @@ import type { HexCrop } from "@/data/hexZones";
 
 interface CropDetailCardProps {
   crop: HexCrop;
-  plotLabel?: string;
   isActive?: boolean;
 }
 
@@ -22,7 +21,7 @@ function healthLabel(health: HexCrop["health"]) {
   return "Healthy";
 }
 
-export function CropDetailCard({ crop, plotLabel, isActive = false }: CropDetailCardProps) {
+export function CropDetailCard({ crop, isActive = false }: CropDetailCardProps) {
   return (
     <article
       className={`rounded-xl border bg-white p-4 shadow-[0_2px_8px_rgba(0,0,0,0.06)] transition-all ${
@@ -32,14 +31,7 @@ export function CropDetailCard({ crop, plotLabel, isActive = false }: CropDetail
       }`}
     >
       <div className="mb-2 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-xl">{crop.emoji}</span>
-          {plotLabel ? (
-            <span className="rounded-full border border-[#cfe5d4] bg-[#edf8ef] px-2 py-0.5 text-[11px] font-semibold text-[#2d6a46]">
-              {plotLabel}
-            </span>
-          ) : null}
-        </div>
+        <span className="text-xl">{crop.emoji}</span>
         <span className={`rounded-full px-2 py-1 text-xs font-medium ${badgeStyles(crop.health)}`}>{healthLabel(crop.health)}</span>
       </div>
 

@@ -41,8 +41,8 @@ export function Sidebar({ alertView, teamMembers, chatView }: SidebarProps) {
                   </p>
                   <p className="truncate text-[11px] text-[#607f6a]">{member.mission}</p>
                   {member.vitaminDeficiency ? (
-                    <p className="mt-1 inline-flex rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
-                      Deficiency: {member.vitaminDeficiency}
+                    <p className="mt-1 inline-flex rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+                      {member.vitaminDeficiency}
                     </p>
                   ) : null}
                 </div>
@@ -62,7 +62,7 @@ export function Sidebar({ alertView, teamMembers, chatView }: SidebarProps) {
         >
           <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#486554]">
             <MessageSquare className="h-3.5 w-3.5" />
-            Flora
+            Flora AI Agent
           </span>
           {isChatOpen ? (
             <ChevronUp className="h-4 w-4 text-[#486554]" />

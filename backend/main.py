@@ -272,6 +272,7 @@ def root():
             "optimize": "/sim/optimize",
             "agent_tick": "/agent/tick",
             "agent_query": "/agent/query",
+            "agent_nasa_weather": "/agent/nasa-weather",
             "motor_trigger": "/motor/trigger",
         },
     }
