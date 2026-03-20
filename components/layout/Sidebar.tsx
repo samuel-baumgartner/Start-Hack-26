@@ -15,12 +15,12 @@ export function Sidebar({ alertView, teamMembers, chatView }: SidebarProps) {
   const [isChatOpen, setIsChatOpen] = useState(true);
 
   return (
-    <aside className="glass-card relative flex h-full min-h-[700px] flex-col rounded-3xl p-5">
-      <div className="mb-3">
+    <aside className="glass-card relative flex h-full min-h-0 flex-col rounded-3xl p-5">
+      <div className="mb-10">
         {alertView}
       </div>
 
-      <section className="mb-3 rounded-2xl border border-[#d7e6d8] bg-white/70 p-3">
+      <section className="mb-10 rounded-2xl border border-[#d7e6d8] bg-white/70 p-3">
         <div className="mb-2 flex items-center justify-between">
           <h3 className="text-xs font-semibold uppercase tracking-wide text-[#496856]">Team</h3>
           <span className="text-[11px] text-[#6b8f6b]">{teamMembers.length} crew online</span>
@@ -52,7 +52,7 @@ export function Sidebar({ alertView, teamMembers, chatView }: SidebarProps) {
         </div>
       </section>
 
-      <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-[#d7e6d8] bg-white/60 p-2">
+      <div className="mt-auto flex h-[420px] min-h-0 flex-col rounded-2xl border border-[#d7e6d8] bg-white/60 p-2">
         <button
           type="button"
           onClick={() => setIsChatOpen((prev) => !prev)}
@@ -72,7 +72,7 @@ export function Sidebar({ alertView, teamMembers, chatView }: SidebarProps) {
         </button>
 
         {isChatOpen ? (
-          <div id="ai-chat-panel" className="mt-2 min-h-[340px] flex-1 overflow-hidden rounded-2xl">
+          <div id="ai-chat-panel" className="mt-2 min-h-0 flex-1 overflow-hidden rounded-2xl">
             {chatView}
           </div>
         ) : null}

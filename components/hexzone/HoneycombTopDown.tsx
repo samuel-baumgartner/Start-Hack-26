@@ -4,6 +4,7 @@ import { hexPoints } from "./hexMath";
 interface HoneycombTopDownProps {
   zone: HexZone;
   size?: number;
+  motionSeed?: number;
 }
 
 function previewPositions(radius: number): Array<{ x: number; y: number }> {
@@ -26,26 +27,35 @@ function previewPositions(radius: number): Array<{ x: number; y: number }> {
   });
 }
 
-export function HoneycombTopDown({ zone, size = 160 }: HoneycombTopDownProps) {
+export function HoneycombTopDown({ zone, size = 160, motionSeed = 0 }: HoneycombTopDownProps) {
   const r = 18;
   const positions = previewPositions(r);
+  const includeIllPreview = zone.id === "A";
+  const infectedSlotIndex = includeIllPreview ? 6 : -1;
 
   return (
     <svg viewBox="-90 -90 180 180" width={size} height={size * 0.87}>
       {positions.map((_, i) => {
         const slot = zone.slots[i] ?? { id: `${zone.id}-virtual-${i}`, genericType: "generic" as const };
         const { x: cx, y: cy } = positions[i];
-        const opacity = slot.genericType === "reserve" ? 0.2 : 0.28;
+        const uniformOpacity = 0.3;
+        const entryDelay = `${150 + motionSeed + i * 40}ms`;
+        const showInfectedPreview = i === infectedSlotIndex;
+        const hexFill = showInfectedPreview ? "#ef4444" : zone.theme.color;
+        const hexStroke = showInfectedPreview ? "#b91c1c" : zone.theme.color;
         return (
-          <g key={slot.id}>
+          <g
+            key={slot.id}
+            className={i % 2 === 0 ? "hex-piece-left" : "hex-piece-right"}
+            style={{ animationDelay: entryDelay }}
+          >
             <polygon
               points={hexPoints(cx, cy, r)}
-              fill={zone.theme.color}
-              fillOpacity={opacity}
-              stroke={zone.theme.color}
-              strokeOpacity={0.5}
-              strokeWidth={0.8}
-              strokeDasharray={slot.genericType === "reserve" ? "3 3" : undefined}
+              fill={hexFill}
+              fillOpacity={uniformOpacity}
+              stroke={hexStroke}
+              strokeOpacity={0.6}
+              strokeWidth={0.9}
             />
             <circle cx={cx} cy={cy} r={2.3} fill="#8ea397" opacity={0.55} />
           </g>

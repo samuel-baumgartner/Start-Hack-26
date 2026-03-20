@@ -1,0 +1,16 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Stop Serial Monitor and Upload",
+      "type": "shell",
+      "command": "pkill",
+      "args": ["-f", "python -m serial.tools.miniterm"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}

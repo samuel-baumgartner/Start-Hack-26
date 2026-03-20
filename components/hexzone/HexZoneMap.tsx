@@ -169,9 +169,20 @@ export function HexZoneMap() {
   }
 
   return (
-    <section className="panel-card flex h-full min-h-[520px] flex-col rounded-3xl p-6">
-      <h2 className="mb-3 text-xl font-semibold uppercase tracking-wide text-[#496856]">Zone Map</h2>
-      <p className="mb-4 text-base text-[#607f6b]">Click any zone to inspect crops and sensor details.</p>
+    <section className="panel-card relative flex h-full min-h-[520px] flex-col overflow-hidden rounded-3xl border border-[#dce8dd] bg-[radial-gradient(circle_at_top_left,_rgba(231,245,236,0.6),_rgba(255,255,255,0.95)_35%,_rgba(250,253,251,0.95)_100%)] p-6 shadow-[0_16px_50px_rgba(20,55,36,0.08)]">
+      <div className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-[#dff2e2] blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-20 -left-16 h-48 w-48 rounded-full bg-[#e6f4ea] blur-3xl" />
+
+      <div className="assemble-drop-up relative mb-6 flex flex-col items-center text-center" style={{ animationDelay: "210ms" }}>
+        <span className="mb-3 rounded-full border border-[#cfe1d2] bg-white/85 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#4b6d59] shadow-[0_4px_14px_rgba(23,64,42,0.08)]">
+          Greenhouse Intelligence
+        </span>
+        <h2 className="text-2xl font-semibold uppercase tracking-[0.18em] text-[#2f4e3e]">Zone Map</h2>
+        <p className="mt-3 max-w-2xl text-base text-[#5f7e6a]">
+          Click any zone to inspect crops and sensor details.
+        </p>
+        <div className="mt-4 h-px w-24 bg-gradient-to-r from-transparent via-[#aac8b3] to-transparent" />
+      </div>
 
       {phase === "overview" ? (
         <div
@@ -179,40 +190,45 @@ export function HexZoneMap() {
             opacity: cardsOpacity,
             transform: `scale(${cardsScale})`,
           }}
-          className="grid w-full grid-cols-2 gap-4"
+          className="grid w-full grid-cols-2 gap-5"
         >
-          {hexZones.map((zone) => {
+          {hexZones.map((zone, zoneIndex) => {
             const isHovered = hoveredZoneId === zone.id;
             return (
-              <button
+              <div
                 key={zone.id}
-                type="button"
-                onClick={() => void enterZoneDetail(zone.id)}
-                onMouseEnter={() => setHoveredZoneId(zone.id)}
-                onMouseLeave={() => setHoveredZoneId(null)}
-                className="rounded-2xl border border-[#E2E8E0] bg-white px-5 pb-4 pt-4 text-left shadow-[0_5px_20px_rgba(21,50,33,0.05)] transition-shadow"
-                style={{
-                  cursor: "pointer",
-                  borderColor: isHovered ? "#B9D4C1" : "#E2E8E0",
-                  transform: isHovered ? "translateY(-2px)" : "translateY(0px)",
-                  boxShadow: isHovered
-                    ? "0 12px 28px rgba(20, 59, 38, 0.08)"
-                    : "0 5px 20px rgba(21, 50, 33, 0.05)",
-                }}
+                className={zoneIndex % 2 === 0 ? "assemble-fly-left" : "assemble-fly-right"}
+                style={{ animationDelay: `${320 + zoneIndex * 90}ms` }}
               >
-                <div className="mb-3 rounded-xl border border-[#E2EDE4] bg-gradient-to-b from-[#f8fcf8] to-[#f2f7f2] p-2.5">
-                  <div className="flex min-h-[132px] items-center justify-center">
-                    <HoneycombTopDown zone={zone} size={286} />
+                <button
+                  type="button"
+                  onClick={() => void enterZoneDetail(zone.id)}
+                  onMouseEnter={() => setHoveredZoneId(zone.id)}
+                  onMouseLeave={() => setHoveredZoneId(null)}
+                  className="w-full rounded-2xl border border-[#dfe9e1] bg-[linear-gradient(180deg,_rgba(255,255,255,0.98),_rgba(247,252,248,0.95))] px-5 pb-4 pt-4 text-left shadow-[0_10px_24px_rgba(24,56,37,0.06)] ring-1 ring-white/80 transition-all duration-200"
+                  style={{
+                    cursor: "pointer",
+                    borderColor: isHovered ? "#b7d7c1" : "#dfe9e1",
+                    transform: isHovered ? "translateY(-4px) scale(1.01)" : "translateY(0px) scale(1)",
+                    boxShadow: isHovered
+                      ? "0 18px 38px rgba(18, 60, 37, 0.12)"
+                      : "0 10px 24px rgba(24, 56, 37, 0.06)",
+                  }}
+                >
+                  <div className="mb-3 rounded-xl border border-[#ddeade] bg-gradient-to-b from-[#f8fcf8] via-[#f4faf5] to-[#eef5ef] p-2.5 shadow-inner shadow-[#ecf5ee]">
+                    <div className="flex min-h-[132px] items-center justify-center">
+                      <HoneycombTopDown zone={zone} size={286} motionSeed={zoneIndex * 12} />
+                    </div>
                   </div>
+                  <div className="mb-2 flex items-center justify-between">
+                    <h3 className="text-[17px] font-semibold text-[#1a2b20]">{zone.name}</h3>
+                    <span className={`rounded-full px-3 py-1 text-xs font-medium ${badgeStyles(zone.badgeTone)}`}>
+                      {zone.badgeLabel}
+                    </span>
+                  </div>
+                  <p className="text-sm text-[#6b8f6b]">{zone.subtitle}</p>
+                </button>
                 </div>
-                <div className="mb-2 flex items-center justify-between">
-                  <h3 className="text-[17px] font-semibold text-[#1a2b20]">{zone.name}</h3>
-                  <span className={`rounded-full px-3 py-1 text-xs font-medium ${badgeStyles(zone.badgeTone)}`}>
-                    {zone.badgeLabel}
-                  </span>
-                </div>
-                <p className="text-sm text-[#6b8f6b]">{zone.subtitle}</p>
-              </button>
             );
           })}
         </div>
@@ -267,9 +283,15 @@ export function HexZoneMap() {
                 </p>
               ) : null}
               {selectedPlotHasDisease ? (
-                <p className="mb-1.5 rounded-md border border-[#f5c2c7] bg-[#fdecec] px-2.5 py-1.5 text-[11px] font-medium text-[#8a1c1c]">
-                  Disease alert: this plant shows signs of infection.
-                </p>
+                <div className="disease-alert-clean mb-1.5 rounded-lg border px-3 py-2 text-[11px]">
+                  <div className="mb-1 flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.13em] text-[#9f1239]">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#e11d48]" />
+                      Active Infection
+                    </span>
+                  </div>
+                  <p className="font-medium text-[#7f1d1d]">Disease alert: this plant shows signs of infection.</p>
+                </div>
               ) : null}
               {selectedSensors ? (
                 <div className="grid grid-cols-1 gap-1.5 text-xs text-[#1f3729]">

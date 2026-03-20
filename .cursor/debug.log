@@ -24,3 +24,5 @@
 {"location": "main.py", "message": "agent_init_error", "data": {"error": "No module named 'strands'", "type": "ModuleNotFoundError"}, "hypothesisId": "H3", "timestamp": 1773971269881.898}
 {"location": "main.py", "message": "env_loaded", "data": {"aws_key_set": false, "region": "?"}, "hypothesisId": "H1", "timestamp": 1773976758622.154}
 {"location": "main.py", "message": "agent_init_error", "data": {"error": "No module named 'strands'", "type": "ModuleNotFoundError"}, "hypothesisId": "H3", "timestamp": 1773976759354.0552}
+{"location": "main.py", "message": "env_loaded", "data": {"aws_key_set": false, "region": "?"}, "hypothesisId": "H1", "timestamp": 1773985489451.9182}
+{"location": "main.py", "message": "agent_init_error", "data": {"error": "No module named 'strands'", "type": "ModuleNotFoundError"}, "hypothesisId": "H3", "timestamp": 1773985491361.3323}

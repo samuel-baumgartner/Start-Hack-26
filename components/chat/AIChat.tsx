@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Send } from "lucide-react";
 import { initialChatMessages, rotatingAiReplies } from "@/data/chatMessages";
 import type { ChatMessage } from "@/types/greenhouse";
@@ -15,9 +15,15 @@ export function AIChat() {
   const [input, setInput] = useState("");
   const [replyIndex, setReplyIndex] = useState(0);
   const [typing, setTyping] = useState(false);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const canSend = useMemo(() => input.trim().length > 0 && !typing, [input, typing]);
-  const visibleMessages = useMemo(() => messages.slice(-3), [messages]);
+  const visibleMessages = useMemo(() => messages, [messages]);
+
+  useEffect(() => {
+    if (!scrollRef.current) return;
+    scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [visibleMessages.length, typing]);
 
   function sendMessage() {
     const trimmed = input.trim();
@@ -48,7 +54,7 @@ export function AIChat() {
 
   return (
     <section className="flex h-full min-h-0 flex-col rounded-2xl border border-[#d7e6d8] bg-white/70 p-3">
-      <div className="mb-2 min-h-0 flex-1 space-y-2 overflow-hidden pr-0.5">
+      <div ref={scrollRef} className="custom-scrollbar mb-2 min-h-0 flex-1 space-y-2 overflow-y-auto pr-0.5">
         {visibleMessages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.role === "ai" ? "justify-start" : "justify-end"}`}>
             <div

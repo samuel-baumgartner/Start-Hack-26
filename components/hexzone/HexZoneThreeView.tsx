@@ -21,6 +21,9 @@ const HEX_HEIGHT = 48;
 const SELECTED_PLOT_LIFT = 6;
 const ROW_PATTERN = [2, 3, 2, 3, 2] as const;
 const DISEASE_PLOT_INDEX = 6; // Plot 7 in one-based numbering.
+const DISEASE_SIDE_COLOR = "#dc2626";
+const DISEASE_TOP_COLOR = "#fca5a5";
+const DISEASE_EDGE_COLOR = "#7f1d1d";
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
@@ -178,6 +181,32 @@ export function HexZoneThreeView({ zone, plotSlots, orbitProgress, selectedPlotI
       group.rotation.y = (1 - eased) * 0.35 + Math.sin(t * 0.6) * 0.02;
       group.position.y = 2 + Math.sin(t * 0.8) * 0.7;
 
+      group.children.forEach((child) => {
+        const effectType = child.userData.effectType as string | undefined;
+        if (effectType === "infectionRing") {
+          const baseScale = child.userData.baseScale as number;
+          const phase = child.userData.phase as number;
+          const pulse = 1 + Math.sin(t * 3.3 + phase) * 0.12;
+          child.scale.setScalar(baseScale * pulse);
+          const material = (child as THREE.Mesh).material as THREE.MeshBasicMaterial;
+          material.opacity = 0.42 + Math.sin(t * 3 + phase) * 0.16;
+        }
+
+        if (effectType === "infectionBadge") {
+          const baseY = child.userData.baseY as number;
+          const phase = child.userData.phase as number;
+          child.position.y = baseY + Math.sin(t * 2.6 + phase) * 0.8;
+          const material = (child as THREE.Sprite).material as THREE.SpriteMaterial;
+          material.opacity = 0.9 + Math.sin(t * 2.2 + phase) * 0.1;
+        }
+
+        if (effectType === "infectionLight") {
+          const baseIntensity = child.userData.baseIntensity as number;
+          const phase = child.userData.phase as number;
+          (child as THREE.PointLight).intensity = baseIntensity + Math.sin(t * 2.8 + phase) * 0.35;
+        }
+      });
+
       renderer.render(scene, camera);
       if (sceneRef.current) {
         sceneRef.current.frameId = window.requestAnimationFrame(renderFrame);
@@ -232,22 +261,29 @@ export function HexZoneThreeView({ zone, plotSlots, orbitProgress, selectedPlotI
     slotPositions.forEach((slotPosition, index) => {
       const slot = plotSlots[index];
       const isReserve = !slot.crop && slot.genericType === "reserve";
+      const isDiseasePlot = index === DISEASE_PLOT_INDEX;
       const height = HEX_HEIGHT;
       const geometry = new THREE.CylinderGeometry(HEX_RADIUS, HEX_RADIUS, height, 6, 1, false);
 
       const isSelected = selectedPlotIndex === index;
       const sideMaterial = new THREE.MeshStandardMaterial({
-        color: zone.theme.color,
+        color: isDiseasePlot ? DISEASE_SIDE_COLOR : zone.theme.color,
         roughness: isReserve ? 0.9 : 0.82,
         metalness: isReserve ? 0.01 : 0.03,
         transparent: true,
         opacity: isReserve ? 0.45 : 0.84,
       });
       const topMaterial = new THREE.MeshStandardMaterial({
-        color: zone.theme.light,
+        color: isDiseasePlot ? DISEASE_TOP_COLOR : zone.theme.light,
         roughness: 0.72,
         metalness: 0.05,
       });
+      if (isDiseasePlot) {
+        sideMaterial.emissive = new THREE.Color("#7f1d1d");
+        sideMaterial.emissiveIntensity = isSelected ? 0.45 : 0.3;
+        topMaterial.emissive = new THREE.Color("#f43f5e");
+        topMaterial.emissiveIntensity = isSelected ? 0.16 : 0.1;
+      }
       const materials: THREE.Material[] = [sideMaterial, topMaterial, topMaterial.clone()];
       const mesh = new THREE.Mesh(geometry, materials);
       mesh.castShadow = true;
@@ -264,7 +300,7 @@ export function HexZoneThreeView({ zone, plotSlots, orbitProgress, selectedPlotI
       const edges = new THREE.LineSegments(
         new THREE.EdgesGeometry(geometry, 28),
         new THREE.LineBasicMaterial({
-          color: zone.theme.dark,
+          color: isDiseasePlot ? DISEASE_EDGE_COLOR : zone.theme.dark,
           transparent: true,
           opacity: isSelected ? 1 : 0.8,
         }),
@@ -284,15 +320,25 @@ export function HexZoneThreeView({ zone, plotSlots, orbitProgress, selectedPlotI
         if (!markerCtx) return;
         markerCtx.clearRect(0, 0, 128, 128);
         // Small icon marker: outer ring + inner dot.
-        markerCtx.fillStyle = isSelected ? "rgba(19, 112, 57, 0.95)" : "rgba(35, 132, 79, 0.82)";
+        markerCtx.fillStyle = isDiseasePlot
+          ? isSelected
+            ? "rgba(159, 18, 57, 0.95)"
+            : "rgba(190, 24, 93, 0.88)"
+          : isSelected
+            ? "rgba(19, 112, 57, 0.95)"
+            : "rgba(35, 132, 79, 0.82)";
         markerCtx.beginPath();
         markerCtx.arc(64, 64, 20, 0, Math.PI * 2);
         markerCtx.fill();
-        markerCtx.fillStyle = "rgba(236, 250, 241, 0.95)";
+        markerCtx.fillStyle = isDiseasePlot ? "rgba(255, 239, 242, 0.96)" : "rgba(236, 250, 241, 0.95)";
         markerCtx.beginPath();
         markerCtx.arc(64, 64, 13, 0, Math.PI * 2);
         markerCtx.fill();
-        markerCtx.fillStyle = isSelected ? "rgba(20, 118, 56, 0.95)" : "rgba(49, 156, 100, 0.9)";
+        markerCtx.fillStyle = isDiseasePlot
+          ? "rgba(225, 29, 72, 0.96)"
+          : isSelected
+            ? "rgba(20, 118, 56, 0.95)"
+            : "rgba(49, 156, 100, 0.9)";
         markerCtx.beginPath();
         markerCtx.arc(64, 64, 5, 0, Math.PI * 2);
         markerCtx.fill();
@@ -339,49 +385,85 @@ export function HexZoneThreeView({ zone, plotSlots, orbitProgress, selectedPlotI
           depthWrite: false,
         }),
       );
-      const baseScale = slot.crop ? 16 : 11;
+      const baseScale = slot.crop ? 19 : 13;
       cropSprite.scale.set(isSelected ? baseScale + 2 : baseScale, isSelected ? baseScale + 2 : baseScale, 1);
       cropSprite.position.set(slotPosition.x, height + 20 + (isSelected ? SELECTED_PLOT_LIFT : 0), slotPosition.z);
       state.group.add(cropSprite);
 
-      if (index === DISEASE_PLOT_INDEX) {
-        const warningCanvas = document.createElement("canvas");
-        warningCanvas.width = 128;
-        warningCanvas.height = 128;
-        const warningCtx = warningCanvas.getContext("2d");
-        if (!warningCtx) return;
+      if (isDiseasePlot) {
+        const ringMaterial = new THREE.MeshBasicMaterial({
+          color: "#fb7185",
+          transparent: true,
+          opacity: 0.52,
+          depthWrite: false,
+        });
+        const ringInner = new THREE.Mesh(new THREE.TorusGeometry(HEX_RADIUS * 0.58, 1.35, 12, 48), ringMaterial);
+        ringInner.rotation.x = Math.PI / 2;
+        ringInner.position.set(slotPosition.x, height + 5 + (isSelected ? SELECTED_PLOT_LIFT : 0), slotPosition.z);
+        ringInner.userData.effectType = "infectionRing";
+        ringInner.userData.baseScale = 1;
+        ringInner.userData.phase = index * 0.4;
+        state.group.add(ringInner);
 
-        warningCtx.clearRect(0, 0, 128, 128);
-        warningCtx.beginPath();
-        warningCtx.moveTo(64, 12);
-        warningCtx.lineTo(118, 106);
-        warningCtx.lineTo(10, 106);
-        warningCtx.closePath();
-        warningCtx.fillStyle = "#dc2626";
-        warningCtx.fill();
-        warningCtx.lineWidth = 6;
-        warningCtx.strokeStyle = "#fee2e2";
-        warningCtx.stroke();
-        warningCtx.fillStyle = "#ffffff";
-        warningCtx.font = "700 60px system-ui";
-        warningCtx.textAlign = "center";
-        warningCtx.textBaseline = "middle";
-        warningCtx.fillText("!", 64, 72);
-
-        const warningSprite = new THREE.Sprite(
-          new THREE.SpriteMaterial({
-            map: new THREE.CanvasTexture(warningCanvas),
+        const ringOuter = new THREE.Mesh(
+          new THREE.TorusGeometry(HEX_RADIUS * 0.8, 1, 10, 42),
+          new THREE.MeshBasicMaterial({
+            color: "#f43f5e",
             transparent: true,
-            depthTest: true,
+            opacity: 0.36,
             depthWrite: false,
           }),
         );
-        warningSprite.scale.set(isSelected ? 12 : 10, isSelected ? 12 : 10, 1);
-        warningSprite.position.set(slotPosition.x, height + 34 + (isSelected ? SELECTED_PLOT_LIFT : 0), slotPosition.z);
-        warningSprite.userData.plotIndex = index;
-        state.group.add(warningSprite);
-        state.interactiveObjects.push(warningSprite);
+        ringOuter.rotation.x = Math.PI / 2;
+        ringOuter.position.set(slotPosition.x, height + 7.2 + (isSelected ? SELECTED_PLOT_LIFT : 0), slotPosition.z);
+        ringOuter.userData.effectType = "infectionRing";
+        ringOuter.userData.baseScale = 1;
+        ringOuter.userData.phase = index * 0.4 + 1.2;
+        state.group.add(ringOuter);
+
+        const warningLight = new THREE.PointLight("#f43f5e", isSelected ? 1.3 : 1.0, 74, 2.1);
+        warningLight.position.set(slotPosition.x, height + 13 + (isSelected ? SELECTED_PLOT_LIFT : 0), slotPosition.z);
+        warningLight.userData.effectType = "infectionLight";
+        warningLight.userData.baseIntensity = isSelected ? 1.3 : 1.0;
+        warningLight.userData.phase = index * 0.4 + 0.6;
+        state.group.add(warningLight);
+
+        const hazardCanvas = document.createElement("canvas");
+        hazardCanvas.width = 256;
+        hazardCanvas.height = 256;
+        const hazardCtx = hazardCanvas.getContext("2d");
+        if (!hazardCtx) return;
+        const grad = hazardCtx.createRadialGradient(128, 124, 12, 128, 128, 92);
+        grad.addColorStop(0, "rgba(255, 241, 244, 0.96)");
+        grad.addColorStop(1, "rgba(244, 63, 94, 0.08)");
+        hazardCtx.fillStyle = grad;
+        hazardCtx.beginPath();
+        hazardCtx.arc(128, 128, 92, 0, Math.PI * 2);
+        hazardCtx.fill();
+        hazardCtx.fillStyle = "#9f1239";
+        hazardCtx.font = "700 126px system-ui";
+        hazardCtx.textAlign = "center";
+        hazardCtx.textBaseline = "middle";
+        hazardCtx.fillText("☣", 128, 134);
+
+        const hazardSprite = new THREE.Sprite(
+          new THREE.SpriteMaterial({
+            map: new THREE.CanvasTexture(hazardCanvas),
+            transparent: true,
+            depthTest: true,
+            depthWrite: false,
+            opacity: 0.95,
+          }),
+        );
+        hazardSprite.scale.set(isSelected ? 12 : 10.8, isSelected ? 12 : 10.8, 1);
+        const baseY = height + 34 + (isSelected ? SELECTED_PLOT_LIFT : 0);
+        hazardSprite.position.set(slotPosition.x, baseY, slotPosition.z);
+        hazardSprite.userData.effectType = "infectionBadge";
+        hazardSprite.userData.baseY = baseY;
+        hazardSprite.userData.phase = index * 0.4;
+        state.group.add(hazardSprite);
       }
+
     });
   }, [zone, plotSlots, selectedPlotIndex]);
 

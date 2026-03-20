@@ -3,22 +3,23 @@
 @import "shadcn/tailwind.css";
 
 :root {
-  --background: #f7faf7;
-  --foreground: #1a2b20;
-  --muted-foreground: #6b8f6b;
-  --border: #d8e7d9;
-  --surface: rgba(255, 255, 255, 0.76);
-  --surface-strong: rgba(255, 255, 255, 0.9);
-  --violet: #36398e;
-  --green: #009f3c;
-  --lime: #a3e635;
-  --amber: #f59e0b;
+  --background: #f4f9f4;
+  --foreground: #16251e;
+  --muted-foreground: #5f7f6f;
+  --border: #d4e6d6;
+  --surface: rgba(253, 255, 253, 0.8);
+  --surface-strong: rgba(255, 255, 255, 0.94);
+  --violet: #494de0;
+  --green: #00a74a;
+  --lime: #b9ef58;
+  --amber: #f6a11a;
   --critical: #ef4444;
 }
 
 @theme inline {
   --font-sans: var(--font-dm-sans);
   --font-mono: var(--font-space-mono);
+  --font-display: var(--font-syne);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-border: var(--border);
@@ -38,18 +39,19 @@
     @apply text-foreground font-sans;
     background:
       radial-gradient(circle at 8% 12%, rgba(0, 159, 60, 0.12) 0, transparent 36%),
-      radial-gradient(circle at 92% 8%, rgba(54, 57, 142, 0.1) 0, transparent 34%),
-      linear-gradient(180deg, #f9fdf9 0%, #f2f8f2 100%);
+      radial-gradient(circle at 92% 8%, rgba(73, 77, 224, 0.12) 0, transparent 34%),
+      radial-gradient(circle at 50% 100%, rgba(8, 118, 55, 0.07) 0, transparent 45%),
+      linear-gradient(180deg, #f9fdf9 0%, #f1f7f1 55%, #ecf5ed 100%);
   }
 }
 
 .glass-card {
   background: var(--surface);
   border: 1px solid rgba(255, 255, 255, 0.74);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
   box-shadow:
-    0 24px 40px -24px rgba(0, 90, 30, 0.34),
-    inset 0 1px 0 rgba(255, 255, 255, 0.75);
+    0 34px 54px -30px rgba(6, 84, 36, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
 .panel-card {
@@ -79,6 +81,72 @@
   animation: fade-in 420ms ease-out;
 }
 
+.pulse-ambient {
+  position: relative;
+  overflow: hidden;
+}
+
+.pulse-ambient::after {
+  content: "";
+  position: absolute;
+  inset: -70% -35%;
+  background:
+    radial-gradient(circle, rgba(5, 158, 71, 0.18) 0, transparent 40%),
+    radial-gradient(circle, rgba(73, 77, 224, 0.2) 0, transparent 42%);
+  filter: blur(42px);
+  opacity: 0.8;
+  pointer-events: none;
+  animation: orbit-pulse 16s linear infinite;
+}
+
+.assemble-fly-left,
+.assemble-fly-right,
+.assemble-drop-up {
+  opacity: 0;
+  animation-duration: 980ms;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.16, 0.84, 0.24, 1);
+  will-change: transform, opacity, filter;
+}
+
+.assemble-fly-left {
+  animation-name: assemble-fly-left;
+}
+
+.assemble-fly-right {
+  animation-name: assemble-fly-right;
+}
+
+.assemble-drop-up {
+  animation-name: assemble-drop-up;
+}
+
+.hex-piece-left,
+.hex-piece-right {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation-duration: 720ms;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.16, 0.84, 0.24, 1);
+  will-change: transform, opacity, filter;
+}
+
+.hex-piece-left {
+  animation-name: hex-piece-left;
+}
+
+.hex-piece-right {
+  animation-name: hex-piece-right;
+}
+
+.disease-alert-clean {
+  border-color: #efb6bf;
+  border-left-width: 3px;
+  background: linear-gradient(180deg, #fff4f6 0%, #fffbfc 100%);
+  box-shadow: 0 8px 18px -14px rgba(159, 18, 57, 0.4);
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -87,6 +155,83 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes orbit-pulse {
+  0% {
+    transform: translate(-6%, -3%) rotate(0deg);
+  }
+  50% {
+    transform: translate(5%, 4%) rotate(180deg);
+  }
+  100% {
+    transform: translate(-6%, -3%) rotate(360deg);
+  }
+}
+
+@keyframes assemble-fly-left {
+  0% {
+    opacity: 0;
+    transform: translateX(-18vw) translateY(12px) rotate(-8deg) scale(0.94);
+    filter: blur(1.5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) translateY(0) rotate(0deg) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes assemble-fly-right {
+  0% {
+    opacity: 0;
+    transform: translateX(18vw) translateY(12px) rotate(8deg) scale(0.94);
+    filter: blur(1.5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) translateY(0) rotate(0deg) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes assemble-drop-up {
+  0% {
+    opacity: 0;
+    transform: translateY(26px) scale(0.97);
+    filter: blur(1.2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes hex-piece-left {
+  0% {
+    opacity: 0;
+    transform: translateX(-95px) scale(0.74) rotate(-18deg);
+    filter: blur(1.4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1) rotate(0deg);
+    filter: blur(0);
+  }
+}
+
+@keyframes hex-piece-right {
+  0% {
+    opacity: 0;
+    transform: translateX(95px) scale(0.74) rotate(18deg);
+    filter: blur(1.4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1) rotate(0deg);
+    filter: blur(0);
   }
 }
 

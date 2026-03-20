@@ -38,6 +38,15 @@ export const crewTeam: AstronautProfile[] = [
     initials: "LO",
     avatar: "luis-photo",
   },
+  {
+    name: "Nelan Torres",
+    role: "Mission Botanist",
+    sol: 247,
+    crewId: "MC-2039-04",
+    mission: "Ares IV - Surface Ops",
+    initials: "NT",
+    avatar: "male",
+  },
 ];
 
 export const greenhouseHealth: GreenhouseHealth = {

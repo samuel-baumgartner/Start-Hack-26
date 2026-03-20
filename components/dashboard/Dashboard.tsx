@@ -181,7 +181,25 @@ export function Dashboard() {
   }
 
   return (
-    <main className="relative min-h-screen px-6 py-5">
+    <main className="relative min-h-screen overflow-hidden px-6 py-5">
+      <div
+        className="pointer-events-none absolute left-[-110px] top-[-120px] h-[340px] w-[340px] rounded-full blur-3xl"
+        style={{
+          background: "radial-gradient(circle, rgba(7,169,77,0.28) 0%, rgba(7,169,77,0) 72%)",
+        }}
+      />
+      <div
+        className="pointer-events-none absolute right-[-90px] top-[-80px] h-[300px] w-[300px] rounded-full blur-3xl"
+        style={{
+          background: "radial-gradient(circle, rgba(73,77,224,0.26) 0%, rgba(73,77,224,0) 72%)",
+        }}
+      />
+      <div
+        className="pointer-events-none absolute bottom-[-140px] left-1/2 h-[260px] w-[620px] -translate-x-1/2 rounded-full blur-3xl"
+        style={{
+          background: "radial-gradient(circle, rgba(5,108,49,0.14) 0%, rgba(5,108,49,0) 70%)",
+        }}
+      />
       <div className="subtle-noise pointer-events-none absolute inset-0" />
       <div className="relative mx-auto flex w-full max-w-[1560px] flex-col gap-4">
         <div ref={headerAnchorRef}>
@@ -198,17 +216,25 @@ export function Dashboard() {
           />
         </div>
 
-        <section className="grid min-h-[760px] grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
-          <div className="grid min-h-[760px] grid-rows-[minmax(0,1fr)_auto] gap-4">
-            <HexZoneMap />
+        <section className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_420px] xl:items-stretch">
+          <div className="grid gap-4">
+            <div className="assemble-drop-up" style={{ animationDelay: "120ms" }}>
+              <HexZoneMap />
+            </div>
 
-            <div className="grid self-end gap-3 lg:grid-cols-2">
-              <StatusBars bars={statusBars} />
-              <ActionQueue actions={actionQueue} />
+            <div className="grid self-end gap-3 lg:auto-rows-fr lg:grid-cols-2">
+              <div className="assemble-fly-left h-full" style={{ animationDelay: "420ms" }}>
+                <StatusBars bars={statusBars} />
+              </div>
+              <div className="assemble-fly-right h-full" style={{ animationDelay: "500ms" }}>
+                <ActionQueue actions={actionQueue} />
+              </div>
             </div>
           </div>
 
-          <Sidebar alertView={<AlertPanel topAlerts={visibleTopAlerts} />} teamMembers={crewTeam} chatView={<AIChat />} />
+          <div className="assemble-fly-right" style={{ animationDelay: "260ms" }}>
+            <Sidebar alertView={<AlertPanel topAlerts={visibleTopAlerts} />} teamMembers={crewTeam} chatView={<AIChat />} />
+          </div>
         </section>
       </div>
     </main>
