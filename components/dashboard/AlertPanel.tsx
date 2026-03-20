@@ -13,6 +13,7 @@ function categoryClasses(category: AlertItem["category"]) {
   const palette: Record<AlertItem["category"], string> = {
     Harvest: "border-emerald-200 bg-emerald-50 text-emerald-700",
     "Dust storm": "border-amber-200 bg-amber-50 text-amber-700",
+    "Sand storm": "border-amber-200 bg-amber-50 text-amber-700",
     Disease: "border-rose-200 bg-rose-50 text-rose-700",
     Water: "border-sky-200 bg-sky-50 text-sky-700",
     "Nutrient depletion": "border-lime-200 bg-lime-50 text-lime-700",

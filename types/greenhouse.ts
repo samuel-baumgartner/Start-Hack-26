@@ -9,6 +9,8 @@ export interface AstronautProfile {
   crewId: string;
   mission: string;
   initials: string;
+  avatar?: "male" | "female" | string;
+  vitaminDeficiency?: string;
 }
 
 export interface HealthLogEntry {
@@ -45,6 +47,7 @@ export interface ActionItem {
 export type AlertCategory =
   | "Harvest"
   | "Dust storm"
+  | "Sand storm"
   | "Disease"
   | "Water"
   | "Nutrient depletion"
