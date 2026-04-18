@@ -1,64 +1,51 @@
-# Start Hack
+# Flora AI — StartHack 2026
 
-Clean starter repository for team development using:
+**2nd place / 26 teams · St. Gallen, March 2026 · $5,000 AWS credits team prize**
 
-- Next.js (App Router + TypeScript)
-- shadcn/ui
-- Framer Motion
-- pnpm
-- Husky git hooks
+Live demo: [flora.samuelbaumgartner.ch](https://flora.samuelbaumgartner.ch)
 
-## Quick Start
+An agent-driven indoor-farming / nutrition simulation. The system runs a multi-zone farm simulation (sensors, growth, nutritional coverage), lets a natural-language agent reason over the current state, and executes autonomous decision cycles against a stable API contract.
+
+## What it does
+
+- Simulates a multi-zone farm with per-zone sensors and per-crop nutritional output.
+- Exposes a stable REST + SSE API for state, sensors, nutrition, tick control, event log.
+- An LLM agent answers operator questions about the farm and can run autonomous decision cycles that advance the simulation.
+- Frontend: Next.js 16 / React 19 with Framer Motion, Three.js for the 3D zone view, and an SSE live feed.
+- ESP8266 firmware for the physical demo sensor rig.
+
+## Architecture
+
+```
+Frontend (Next.js / App Router)
+    │  proxies /sim/*  and  /agent/*
+    ▼
+Backend (Python / FastAPI)
+    ├── /sim/state, /sim/sensors, /sim/nutrition, /sim/tick, /sim/stream (SSE)
+    ├── /agent/query, /agent/tick, /agent/decisions
+    └── /auto-tick/start|stop|status, /events/log
+
+Hardware: ESP8266_Code/  — sensor firmware for the physical demo rig.
+```
+
+Two agent workstreams (backend / frontend) ran in parallel during the hackathon under the boundaries documented in [`AGENTS.md`](AGENTS.md).
+
+## Stack
+
+Next.js 16 · React 19 · TypeScript · FastAPI · Python · Three.js · Framer Motion · shadcn/ui · Tailwind · AWS (Amplify / S3) · ESP8266 (C++).
+
+## Run it
 
 ```bash
 pnpm install
-pnpm dev
+pnpm dev                 # frontend
+# backend: see backend/README.md  (FastAPI on :8000)
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+## Context
 
-## Project Scripts
+Built in 36 hours at StartHack 2026. Placed 2nd out of 26 teams.
 
-- `pnpm dev` - run development server
-- `pnpm lint` - run ESLint checks
-- `pnpm build` - production build
-- `pnpm check` - lint + build
+## Author (of this fork)
 
-## Push Protection (Build Gate)
-
-This repo has Husky hooks configured:
-
-- `pre-commit` runs `pnpm lint`
-- `pre-push` runs `pnpm build`
-
-If either fails, git blocks the push. This keeps the shared branch deployable.
-
-For remote protection, CI in `.github/workflows/ci.yml` also runs lint + build on PRs and pushes to `main`/`master`.
-
-## Team Onboarding
-
-1. Clone the repo
-2. Run `pnpm install`
-3. Start coding in `app/page.tsx` or add features in `components/`
-
-To add more shadcn components:
-
-```bash
-pnpm dlx shadcn@latest add <component-name>
-```
-
-## NASA Weather Context (Agent Demo)
-
-The backend agent now pulls Mars weather context from NASA's InSight weather API.
-This is used as informational context for agent reasoning only (it does not directly trigger simulator actions).
-
-- Endpoint: `GET /agent/nasa-weather`
-- Optional query: `refresh=true` to bypass cache and fetch fresh data
-- API key: set `NASA_API_KEY` in `backend/.env` (falls back to `DEMO_KEY` if not set)
-
-Quick demo call:
-
-```bash
-curl "http://localhost:8000/agent/nasa-weather"
-curl "http://localhost:8000/agent/nasa-weather?refresh=true"
-```
+[Samuel Baumgartner](https://www.samuelbaumgartner.ch) — BSc Electrical Engineering, ETH Zürich.
