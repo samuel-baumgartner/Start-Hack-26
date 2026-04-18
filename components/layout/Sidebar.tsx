@@ -15,12 +15,12 @@ export function Sidebar({ alertView, teamMembers, chatView }: SidebarProps) {
   const [isChatOpen, setIsChatOpen] = useState(true);
 
   return (
-    <aside className="glass-card relative flex h-full min-h-0 flex-col rounded-3xl p-5">
-      <div className="mb-10">
+    <aside className="glass-card relative flex h-full min-h-0 flex-col rounded-2xl p-4 sm:rounded-3xl sm:p-5">
+      <div className="mb-6 sm:mb-10">
         {alertView}
       </div>
 
-      <section className="mb-10 rounded-2xl border border-[#d7e6d8] bg-white/70 p-3">
+      <section className="mb-6 rounded-2xl border border-[#d7e6d8] bg-white/70 p-3 sm:mb-10">
         <div className="mb-2 flex items-center justify-between">
           <h3 className="text-xs font-semibold uppercase tracking-wide text-[#496856]">Team</h3>
           <span className="text-[11px] text-[#6b8f6b]">{teamMembers.length} crew online</span>
@@ -52,7 +52,7 @@ export function Sidebar({ alertView, teamMembers, chatView }: SidebarProps) {
         </div>
       </section>
 
-      <div className="mt-auto flex h-[420px] min-h-0 flex-col rounded-2xl border border-[#d7e6d8] bg-white/60 p-2">
+      <div className="mt-auto flex h-[min(28rem,52dvh)] min-h-0 flex-col rounded-2xl border border-[#d7e6d8] bg-white/60 p-2 sm:h-[420px]">
         <button
           type="button"
           onClick={() => setIsChatOpen((prev) => !prev)}

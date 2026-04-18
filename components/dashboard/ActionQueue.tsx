@@ -13,7 +13,7 @@ export function ActionQueue({ actions }: ActionQueueProps) {
   }).slice(0, 3);
 
   return (
-    <section className="panel-card relative h-[420px] overflow-hidden rounded-3xl border border-[#d9e5da] bg-[linear-gradient(160deg,_rgba(255,255,255,0.97),_rgba(247,251,248,0.95)_50%,_rgba(241,247,243,0.96)_100%)] p-5 shadow-[0_16px_40px_rgba(25,63,40,0.1)]">
+    <section className="panel-card relative min-h-[min(22rem,48dvh)] overflow-hidden rounded-2xl border border-[#d9e5da] bg-[linear-gradient(160deg,_rgba(255,255,255,0.97),_rgba(247,251,248,0.95)_50%,_rgba(241,247,243,0.96)_100%)] p-4 shadow-[0_16px_40px_rgba(25,63,40,0.1)] sm:h-[420px] sm:rounded-3xl sm:p-5">
       <div className="pointer-events-none absolute inset-x-6 bottom-3 h-10 rounded-full bg-[radial-gradient(circle,_rgba(201,83,49,0.18),_rgba(201,83,49,0)_70%)] blur-xl" />
 
       <h2 className="mb-3 text-lg font-semibold uppercase tracking-wide text-[#3f5e4d]">Action Queue</h2>

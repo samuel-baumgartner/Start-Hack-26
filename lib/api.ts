@@ -1,6 +1,10 @@
 import type { SimState, NutritionData, AgentResponse, AutoTickStatus, AgentDecision } from "./types";
 
-const BASE = "/api";
+/** Vercel: FastAPI is mounted at `/_/backend` (see repo `vercel.json`). Local: `next dev` uses `next.config` rewrites from `/api`. */
+export const API_BASE =
+  process.env.NEXT_PUBLIC_VERCEL_ENV !== undefined ? "/_/backend" : "/api";
+
+const BASE = API_BASE;
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);

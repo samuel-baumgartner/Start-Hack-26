@@ -169,7 +169,7 @@ export function HexZoneMap() {
   }
 
   return (
-    <section className="panel-card relative flex h-full min-h-[520px] flex-col overflow-hidden rounded-3xl border border-[#dce8dd] bg-[radial-gradient(circle_at_top_left,_rgba(231,245,236,0.6),_rgba(255,255,255,0.95)_35%,_rgba(250,253,251,0.95)_100%)] p-6 shadow-[0_16px_50px_rgba(20,55,36,0.08)]">
+    <section className="panel-card relative flex min-h-[min(100vw,420px)] flex-col overflow-hidden rounded-2xl border border-[#dce8dd] bg-[radial-gradient(circle_at_top_left,_rgba(231,245,236,0.6),_rgba(255,255,255,0.95)_35%,_rgba(250,253,251,0.95)_100%)] p-4 shadow-[0_16px_50px_rgba(20,55,36,0.08)] sm:min-h-[520px] sm:rounded-3xl sm:p-6">
       <div className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-[#dff2e2] blur-3xl" />
       <div className="pointer-events-none absolute -bottom-20 -left-16 h-48 w-48 rounded-full bg-[#e6f4ea] blur-3xl" />
 
@@ -177,8 +177,8 @@ export function HexZoneMap() {
         <span className="mb-3 rounded-full border border-[#cfe1d2] bg-white/85 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#4b6d59] shadow-[0_4px_14px_rgba(23,64,42,0.08)]">
           Greenhouse Intelligence
         </span>
-        <h2 className="text-2xl font-semibold uppercase tracking-[0.18em] text-[#2f4e3e]">Zone Map</h2>
-        <p className="mt-3 max-w-2xl text-base text-[#5f7e6a]">
+        <h2 className="text-xl font-semibold uppercase tracking-[0.18em] text-[#2f4e3e] sm:text-2xl">Zone Map</h2>
+        <p className="mt-2 max-w-2xl text-sm text-[#5f7e6a] sm:mt-3 sm:text-base">
           Click any zone to inspect crops and sensor details.
         </p>
         <div className="mt-4 h-px w-24 bg-gradient-to-r from-transparent via-[#aac8b3] to-transparent" />
@@ -190,7 +190,7 @@ export function HexZoneMap() {
             opacity: cardsOpacity,
             transform: `scale(${cardsScale})`,
           }}
-          className="grid w-full grid-cols-2 gap-5"
+          className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5"
         >
           {hexZones.map((zone, zoneIndex) => {
             const isHovered = hoveredZoneId === zone.id;
@@ -205,7 +205,7 @@ export function HexZoneMap() {
                   onClick={() => void enterZoneDetail(zone.id)}
                   onMouseEnter={() => setHoveredZoneId(zone.id)}
                   onMouseLeave={() => setHoveredZoneId(null)}
-                  className="w-full rounded-2xl border border-[#dfe9e1] bg-[linear-gradient(180deg,_rgba(255,255,255,0.98),_rgba(247,252,248,0.95))] px-5 pb-4 pt-4 text-left shadow-[0_10px_24px_rgba(24,56,37,0.06)] ring-1 ring-white/80 transition-all duration-200"
+                  className="w-full rounded-2xl border border-[#dfe9e1] bg-[linear-gradient(180deg,_rgba(255,255,255,0.98),_rgba(247,252,248,0.95))] px-3 pb-3 pt-3 text-left shadow-[0_10px_24px_rgba(24,56,37,0.06)] ring-1 ring-white/80 transition-all duration-200 sm:px-5 sm:pb-4 sm:pt-4"
                   style={{
                     cursor: "pointer",
                     borderColor: isHovered ? "#b7d7c1" : "#dfe9e1",
@@ -215,13 +215,15 @@ export function HexZoneMap() {
                       : "0 10px 24px rgba(24, 56, 37, 0.06)",
                   }}
                 >
-                  <div className="mb-3 rounded-xl border border-[#ddeade] bg-gradient-to-b from-[#f8fcf8] via-[#f4faf5] to-[#eef5ef] p-2.5 shadow-inner shadow-[#ecf5ee]">
-                    <div className="flex min-h-[132px] items-center justify-center">
-                      <HoneycombTopDown zone={zone} size={286} motionSeed={zoneIndex * 12} />
+                  <div className="mb-2 rounded-xl border border-[#ddeade] bg-gradient-to-b from-[#f8fcf8] via-[#f4faf5] to-[#eef5ef] p-2 shadow-inner shadow-[#ecf5ee] sm:mb-3 sm:p-2.5">
+                    <div className="flex min-h-[124px] items-center justify-center overflow-hidden sm:min-h-[132px]">
+                      <div className="origin-center scale-[0.76] sm:scale-[0.92] md:scale-100">
+                        <HoneycombTopDown zone={zone} size={286} motionSeed={zoneIndex * 12} />
+                      </div>
                     </div>
                   </div>
-                  <div className="mb-2 flex items-center justify-between">
-                    <h3 className="text-[17px] font-semibold text-[#1a2b20]">{zone.name}</h3>
+                  <div className="mb-2 flex flex-wrap items-center justify-between gap-2 gap-y-1">
+                    <h3 className="text-[15px] font-semibold text-[#1a2b20] sm:text-[17px]">{zone.name}</h3>
                     <span className={`rounded-full px-3 py-1 text-xs font-medium ${badgeStyles(zone.badgeTone)}`}>
                       {zone.badgeLabel}
                     </span>
@@ -234,42 +236,44 @@ export function HexZoneMap() {
         </div>
       ) : activeZone ? (
         <div className="flex flex-1 flex-col">
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <button
               type="button"
               onClick={() => void returnToOverview()}
               disabled={isAnimating}
-              className="inline-flex items-center gap-2 rounded-full border border-[#d4e5d7] bg-white px-4 py-2 text-sm text-[#335140]"
+              className="inline-flex w-fit items-center gap-2 rounded-full border border-[#d4e5d7] bg-white px-4 py-2 text-sm text-[#335140]"
             >
               <ArrowLeft className="h-4 w-4" />
               Back
             </button>
-            <div className="text-right">
-              <p className="text-base font-medium text-[#1a2b20]">
+            <div className="min-w-0 text-left sm:text-right">
+              <p className="text-sm font-medium text-[#1a2b20] sm:text-base">
                 {activeZone.name} - {activeZone.subtitle}
               </p>
-              <span className={`rounded-full px-3 py-1 text-xs font-medium ${badgeStyles(activeZone.badgeTone)}`}>
+              <span className={`mt-1 inline-flex rounded-full px-3 py-1 text-xs font-medium ${badgeStyles(activeZone.badgeTone)}`}>
                 {activeZone.badgeLabel}
               </span>
             </div>
           </div>
 
-          <div className="relative mb-4 min-h-[340px] flex-1 rounded-2xl border border-[#dce9de] bg-gradient-to-b from-white/85 to-[#f0f5f0] p-2">
-            <div className="absolute inset-0">
-              <HexZoneThreeView
-                zone={activeZone}
-                plotSlots={detailPlotSlots}
-                orbitProgress={cameraOrbit}
-                selectedPlotIndex={selectedPlotIndex}
-                onSelectPlot={(plotIndex) => {
-                  if (plotIndex === selectedPlotIndex) return;
-                  setSelectedPlotIndex(plotIndex);
-                }}
-              />
+          <div className="mb-4 flex min-h-0 flex-col gap-3 sm:relative sm:min-h-[380px]">
+            <div className="relative isolate min-h-[min(46dvh,420px)] w-full shrink-0 overflow-hidden rounded-2xl border border-[#dce9de] bg-gradient-to-b from-white/85 to-[#f0f5f0] sm:absolute sm:inset-0 sm:min-h-0">
+              <div className="absolute inset-0 [&_canvas]:touch-pan-y">
+                <HexZoneThreeView
+                  zone={activeZone}
+                  plotSlots={detailPlotSlots}
+                  orbitProgress={cameraOrbit}
+                  selectedPlotIndex={selectedPlotIndex}
+                  onSelectPlot={(plotIndex) => {
+                    if (plotIndex === selectedPlotIndex) return;
+                    setSelectedPlotIndex(plotIndex);
+                  }}
+                />
+              </div>
             </div>
             <article
               style={{ opacity: statsOpacity, transform: `translateY(${statsTranslateY}px)` }}
-              className="pointer-events-none absolute left-5 top-5 z-10 w-[230px] rounded-xl border border-[#d7e7db] bg-white/96 p-3 shadow-[0_10px_24px_rgba(16,52,34,0.12)] backdrop-blur-[2px] transition-all duration-200"
+              className="relative z-10 w-full rounded-xl border border-[#d7e7db] bg-white/98 p-3 shadow-[0_10px_24px_rgba(16,52,34,0.1)] transition-all duration-200 sm:pointer-events-none sm:absolute sm:left-4 sm:top-4 sm:w-[min(230px,calc(100%-2rem))] sm:max-w-[230px] sm:bg-white/96 sm:p-3 sm:backdrop-blur-[2px]"
             >
               <div className="mb-2 flex items-center justify-between">
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-[#4e6a58]">Selected Plot</h4>

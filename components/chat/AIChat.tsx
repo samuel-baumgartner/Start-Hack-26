@@ -31,8 +31,11 @@ export function AIChat() {
   }
 
   return (
-    <section className="flex h-full min-h-0 flex-col rounded-2xl border border-[#d7e6d8] bg-white/70 p-3">
-      <div ref={scrollRef} className="custom-scrollbar mb-2 min-h-0 flex-1 space-y-2 overflow-y-auto pr-0.5">
+    <section className="flex h-full min-h-[12rem] flex-col rounded-2xl border border-[#d7e6d8] bg-white/70 p-2.5 sm:min-h-0 sm:p-3">
+      <div
+        ref={scrollRef}
+        className="custom-scrollbar mb-2 min-h-0 flex-1 touch-pan-y space-y-2 overflow-y-auto pr-0.5"
+      >
         {visibleMessages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.role === "agent" ? "justify-start" : "justify-end"}`}>
             <div
@@ -73,12 +76,12 @@ export function AIChat() {
             }
           }}
           placeholder="Ask Flora about crop priorities..."
-          className="w-full bg-transparent px-2 text-xs text-[#2f4e3d] placeholder:text-[#84a091] focus:outline-none"
+          className="w-full min-h-[44px] bg-transparent px-2 text-base text-[#2f4e3d] placeholder:text-[#84a091] focus:outline-none sm:min-h-0 sm:text-xs"
         />
         <button
           disabled={!canSend}
           onClick={handleSendMessage}
-          className="rounded-xl bg-[#36398e] p-1.5 text-white transition-colors hover:bg-[#2e3078] disabled:cursor-not-allowed disabled:opacity-45"
+          className="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-xl bg-[#36398e] p-2 text-white transition-colors hover:bg-[#2e3078] disabled:cursor-not-allowed disabled:opacity-45 sm:min-h-0 sm:min-w-0 sm:p-1.5"
           aria-label="Send message"
         >
           <Send className="h-3.5 w-3.5" />

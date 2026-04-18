@@ -30,6 +30,14 @@
     @apply border-border;
   }
 
+  html {
+    /* `hidden` on one axis forces the other to `auto` in CSS, which can create a second vertical
+       scroll container next to the viewport — use `clip` to trim overflow without that side effect. */
+    overflow-x: clip;
+    /* Reduces iOS double-tap “page zoom” without disabling pinch zoom for accessibility. */
+    touch-action: manipulation;
+  }
+
   html,
   body {
     min-height: 100%;

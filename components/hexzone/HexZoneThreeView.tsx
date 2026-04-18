@@ -16,6 +16,31 @@ interface HexZoneThreeViewProps {
 const CAMERA_TOP = new THREE.Vector3(0, 430, 0.01);
 const CAMERA_ANGLE = new THREE.Vector3(180, 155, 180);
 const LOOK_AT = new THREE.Vector3(0, 24, 0);
+const scratchCamTop = new THREE.Vector3();
+const scratchCamAngle = new THREE.Vector3();
+/** Slightly lower focal point on narrow viewports — pulls the hex slab upward in the frame. */
+const MOBILE_LOOK_AT = new THREE.Vector3(0, 14, 0);
+
+/**
+ * Pull camera back on phones only (`max-width: 639px`). Never use canvas height alone — that
+ * broke laptops when the 3D panel was short.
+ */
+function isNarrowTouchViewport(): boolean {
+  return typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches;
+}
+
+function cameraDistanceMultiplierMobile(width: number, height: number): number {
+  const h = Math.max(height, 120);
+  const w = Math.max(width, 120);
+  const aspect = w / h;
+  let m = 1.32;
+  if (aspect < 0.42) m += 0.28;
+  else if (aspect < 0.52) m += 0.18;
+  else if (aspect < 0.62) m += 0.1;
+  if (h < 340) m += 0.08;
+  return Math.min(m, 1.68);
+}
+
 const HEX_RADIUS = 28;
 const HEX_HEIGHT = 48;
 const SELECTED_PLOT_LIFT = 6;
@@ -91,6 +116,9 @@ export function HexZoneThreeView({ zone, plotSlots, orbitProgress, selectedPlotI
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFShadowMap;
     mountEl.appendChild(renderer.domElement);
+    renderer.domElement.style.display = "block";
+    renderer.domElement.style.width = "100%";
+    renderer.domElement.style.height = "100%";
 
     const ambient = new THREE.AmbientLight("#c9dccf", 0.75);
     scene.add(ambient);
@@ -137,12 +165,12 @@ export function HexZoneThreeView({ zone, plotSlots, orbitProgress, selectedPlotI
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
 
-    function pickPlot(event: MouseEvent) {
+    function pickPlotAt(clientX: number, clientY: number) {
       const state = sceneRef.current;
       if (!state) return;
       const rect = renderer.domElement.getBoundingClientRect();
-      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
       raycaster.setFromCamera(pointer, camera);
       const hits = raycaster.intersectObjects(state.interactiveObjects, false);
       if (hits.length === 0) return;
@@ -150,6 +178,16 @@ export function HexZoneThreeView({ zone, plotSlots, orbitProgress, selectedPlotI
       const plotIndex = hit.userData.plotIndex as number | undefined;
       if (plotIndex === undefined) return;
       onSelectPlotRef.current(plotIndex);
+    }
+
+    function pickPlot(event: MouseEvent) {
+      pickPlotAt(event.clientX, event.clientY);
+    }
+
+    function pickPlotTouch(event: TouchEvent) {
+      if (event.changedTouches.length !== 1) return;
+      const t = event.changedTouches[0];
+      pickPlotAt(t.clientX, t.clientY);
     }
 
     function updateHoverCursor(event: MouseEvent) {
@@ -164,6 +202,7 @@ export function HexZoneThreeView({ zone, plotSlots, orbitProgress, selectedPlotI
     }
 
     renderer.domElement.addEventListener("click", pickPlot);
+    renderer.domElement.addEventListener("touchend", pickPlotTouch, { passive: true });
     renderer.domElement.addEventListener("mousemove", updateHoverCursor);
 
     const frameTimer = new THREE.Timer();
@@ -175,8 +214,18 @@ export function HexZoneThreeView({ zone, plotSlots, orbitProgress, selectedPlotI
       const p = clamp(orbitProgressRef.current, 0, 1);
 
       const eased = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
-      camera.position.lerpVectors(CAMERA_TOP, CAMERA_ANGLE, eased);
-      camera.lookAt(LOOK_AT);
+      if (!isNarrowTouchViewport()) {
+        camera.position.lerpVectors(CAMERA_TOP, CAMERA_ANGLE, eased);
+        camera.lookAt(LOOK_AT);
+      } else {
+        const w = mountEl.clientWidth;
+        const h = mountEl.clientHeight;
+        const mult = cameraDistanceMultiplierMobile(w, h);
+        scratchCamTop.subVectors(CAMERA_TOP, LOOK_AT).multiplyScalar(mult).add(LOOK_AT);
+        scratchCamAngle.subVectors(CAMERA_ANGLE, LOOK_AT).multiplyScalar(mult).add(LOOK_AT);
+        camera.position.lerpVectors(scratchCamTop, scratchCamAngle, eased);
+        camera.lookAt(MOBILE_LOOK_AT);
+      }
 
       group.rotation.y = (1 - eased) * 0.35 + Math.sin(t * 0.6) * 0.02;
       group.position.y = 2 + Math.sin(t * 0.8) * 0.7;
@@ -217,16 +266,41 @@ export function HexZoneThreeView({ zone, plotSlots, orbitProgress, selectedPlotI
       const width = mountEl.clientWidth;
       const height = mountEl.clientHeight;
       if (!width || !height) return;
-      renderer.setSize(width, height, false);
+      renderer.setSize(width, height, true);
       camera.aspect = width / height;
+      const narrow = isNarrowTouchViewport();
+      if (!narrow) {
+        camera.fov = 42;
+        group.scale.setScalar(1);
+      } else {
+        const mult = cameraDistanceMultiplierMobile(width, height);
+        camera.fov = Math.min(56, 42 + (mult - 1.2) * 38);
+        group.scale.setScalar(height < 460 ? 0.88 : 0.92);
+      }
       camera.updateProjectionMatrix();
+    }
+
+    function onViewportBreakpoint() {
+      updateSize();
     }
 
     const resizeObserver = new ResizeObserver(updateSize);
     resizeObserver.observe(mountEl);
-    updateSize();
 
-    sceneRef.current = { camera, scene, group, plotMeshes: [], interactiveObjects: [], renderer, frameId: null, resizeObserver };
+    const narrowMq = window.matchMedia("(max-width: 639px)");
+    narrowMq.addEventListener("change", onViewportBreakpoint);
+
+    sceneRef.current = {
+      camera,
+      scene,
+      group,
+      plotMeshes: [],
+      interactiveObjects: [],
+      renderer,
+      frameId: null,
+      resizeObserver,
+    };
+    updateSize();
     sceneRef.current.frameId = window.requestAnimationFrame(renderFrame);
 
     return () => {
@@ -235,7 +309,9 @@ export function HexZoneThreeView({ zone, plotSlots, orbitProgress, selectedPlotI
       if (state.frameId !== null) window.cancelAnimationFrame(state.frameId);
       frameTimer.dispose();
       state.resizeObserver?.disconnect();
+      narrowMq.removeEventListener("change", onViewportBreakpoint);
       renderer.domElement.removeEventListener("click", pickPlot);
+      renderer.domElement.removeEventListener("touchend", pickPlotTouch);
       renderer.domElement.removeEventListener("mousemove", updateHoverCursor);
       renderer.domElement.style.cursor = "default";
       clearGroup(state.group);
@@ -467,5 +543,5 @@ export function HexZoneThreeView({ zone, plotSlots, orbitProgress, selectedPlotI
     });
   }, [zone, plotSlots, selectedPlotIndex]);
 
-  return <div ref={mountRef} className="h-full w-full rounded-xl" aria-label={`${zone.name} 3D view`} />;
+  return <div ref={mountRef} className="h-full min-h-0 w-full overflow-hidden rounded-xl" aria-label={`${zone.name} 3D view`} />;
 }

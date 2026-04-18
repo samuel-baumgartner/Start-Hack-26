@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { DM_Sans, Space_Mono, Syne } from "next/font/google";
 import "./globals.css";
 
@@ -24,14 +24,23 @@ export const metadata: Metadata = {
     "Botanical mission-control dashboard for the autonomous NELAN greenhouse agent.",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#ecf5ed",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${spaceMono.variable} ${syne.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" className={`${dmSans.variable} ${spaceMono.variable} ${syne.variable} antialiased`}>
+      <body className="flex min-h-full flex-col overflow-x-clip pb-[env(safe-area-inset-bottom,0px)] pt-[env(safe-area-inset-top,0px)]">
+        {children}
+      </body>
     </html>
   );
 }

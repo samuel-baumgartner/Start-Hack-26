@@ -84,7 +84,19 @@ export default function BenchPage() {
   const res = state.resources;
 
   return (
-    <div style={{ fontFamily: "monospace", fontSize: 13, padding: 16, maxWidth: 1200, background: "#1a1a2e", color: "#e0e0e0", minHeight: "100vh" }}>
+    <div
+      style={{
+        fontFamily: "monospace",
+        fontSize: 13,
+        padding: 16,
+        maxWidth: 1200,
+        background: "#1a1a2e",
+        color: "#e0e0e0",
+        minHeight: "100vh",
+        overflowX: "auto",
+        WebkitOverflowScrolling: "touch",
+      }}
+    >
       <h2 style={{ margin: "0 0 8px" }}>Bench — Mars Greenhouse</h2>
 
       {/* ── Controls ── */}

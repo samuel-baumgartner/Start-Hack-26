@@ -30,7 +30,7 @@ function iconFor(id: MetricBar["id"]) {
 
 export function StatusBars({ bars }: StatusBarsProps) {
   return (
-    <section className="panel-card relative h-[420px] overflow-hidden rounded-3xl border border-[#d9e7db] bg-[linear-gradient(165deg,_rgba(255,255,255,0.96),_rgba(245,251,246,0.95)_45%,_rgba(239,247,241,0.95)_100%)] p-5 shadow-[0_16px_40px_rgba(25,63,40,0.1)]">
+    <section className="panel-card relative min-h-[min(22rem,48dvh)] overflow-hidden rounded-2xl border border-[#d9e7db] bg-[linear-gradient(165deg,_rgba(255,255,255,0.96),_rgba(245,251,246,0.95)_45%,_rgba(239,247,241,0.95)_100%)] p-4 shadow-[0_16px_40px_rgba(25,63,40,0.1)] sm:h-[420px] sm:rounded-3xl sm:p-5">
       <div className="pointer-events-none absolute -left-10 bottom-0 h-28 w-28 rounded-full bg-[#e1f3e5] blur-2xl" />
       <div className="pointer-events-none absolute -right-12 top-0 h-24 w-24 rounded-full bg-[#eaf6ec] blur-2xl" />
 
